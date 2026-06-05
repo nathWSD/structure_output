@@ -1,0 +1,102 @@
+{
+  "automotive_role_domains": [
+    {
+      "name": "Vehicle_Tech_and_Software_Defined_Vehicles",
+      "description": "This domain governs the physical vehicle's computing core, transitioning traditional mechanical cars into Software-Defined Vehicles (SDVs). It encompasses real-time embedded systems programming for Electronic Control Units (ECUs) and microcontroller architectures. Key sub-fields include Advanced Driver Assistance Systems (ADAS) and Autonomous Driving, which rely on AI and Machine Learning for complex tasks like computer vision, path planning, and sensor fusion (LiDAR, radar, cameras). It also includes Hardware-in-the-Loop (HIL) testing to safely validate code against simulated physical hardware, and strict adherence to functional safety standards (ISO 26262). Additionally, it integrates advanced cockpit graphics (such as AR/VR head-up displays and gaming engines for 3D dashboard rendering) and physical assembly automation through robotics engineering on the manufacturing floor."
+    },
+    {
+      "name": "Cloud_Data_and_Connected_Car_Infrastructure",
+      "description": "This domain covers off-board distributed systems, managing the secure digital link between the vehicle fleet and the manufacturer's backend. Sub-fields include cloud architecture (AWS, Azure) and DevOps/SRE practices designed to maintain high availability for millions of concurrent vehicle connections. It handles telemetry data ingestion, processing massive, real-time data streams from car sensors to enable fleet analytics and predictive maintenance. Security is a critical sub-field here, utilizing cybersecurity analysts and ethical hackers to secure vehicle-to-everything (V2X) communications and critical OTA (Over-the-Air) software distribution systems. Additionally, it integrates enterprise software components (Java, .NET, Python), blockchain for supply chain ledger tracking, and fintech systems to handle direct-from-vehicle digital transactions, such as automated tolling and charging payments."
+    },
+    {
+      "name": "Digital_Product_Companion_Apps_and_UX_UI_Quality",
+      "description": "This domain focuses on the digital touchpoints connecting customers with the brand and the overall software quality across web, mobile, and in-car systems. It is led by product and project managers who guide the lifecycle of features from concept to release. UX/UI and Human-Machine Interface (HMI) design are core sub-fields here, ensuring that in-car screens and menus are intuitive and cause minimal driver distraction. Mobile engineering (iOS and Android) is central to building companion apps that allow users to remotely lock, locate, or pre-heat their vehicles. The domain also encompasses rigorous quality assurance, utilizing automated testing, manual QA, and Software Development Engineers in Test (SDET) to systematically verify application performance, user journeys, and technical writing documentation before software is pushed to production."
+    },
+    {
+      "name": "Sales_Marketing_and_Commercial_Operations",
+      "description": "This domain focuses on driving commercial growth, managing customer relationships, and modernizing automotive business models. Key sub-fields include market research and business intelligence, which leverage data analytics to forecast consumer demand and optimize vehicle pricing. It covers both digital and traditional marketing operations (SEO, copywriters, and graphic designers) to build brand awareness for new vehicle launches. Commercial operations handle complex dealer network management systems and fleet sales accounts. Furthermore, as vehicles become more software-driven, this domain manages 'Features-on-Demand' (FoD) and digital subscription services, handling the business strategy, customer billing, and digital storefronts required for post-purchase software upgrades (such as range extension or upgraded navigation packages)."
+    }
+  ],
+
+  "jobs_per_role_domain": {
+                
+    "Vehicle_Tech_and_Software_Defined_Vehicles": {
+      "systems_engineer": "Systems Engineer",
+      "robotics_engineer": "Robotics Engineer",
+      "iot_engineer": "IoT Engineer",
+      "ar_developer": "AR Developer",
+      "vr_developer": "VR Developer",
+      "game_developer": "Game Developer",
+      "ai_engineer": "AI Engineer",
+      "machine_learning_engineer": "Machine Learning Engineer",
+      "embedded_systems_engineer": "Embedded Systems Engineer",
+      "adas_autonomous_driving_engineer": "ADAS / Autonomous Driving Engineer",
+      "ecu_software_developer": "ECU Software Developer",
+      "hil_test_engineer": "Hardware-in-the-Loop (HIL) Test Engineer",
+      "functional_safety_engineer": "Functional Safety Engineer (ISO 26262)"
+    },
+    
+    "Cloud_Data_and_Connected_Car_Infrastructure": {
+      "software_engineer": "Software Engineer",
+      "software_developer": "Software Developer",
+      "backend_developer": "Backend Developer",
+      "full_stack_developer": "Full Stack Developer",
+      "python_developer": "Python Developer",
+      "java_developer": "Java Developer",
+      "dotnet_developer": ".NET Developer",
+      "devops_engineer": "DevOps Engineer",
+      "site_reliability_engineer": "SRE",
+      "cloud_engineer": "Cloud Engineer",
+      "cloud_architect": "Cloud Architect",
+      "solutions_architect": "Solutions Architect",
+      "cybersecurity_analyst": "Cybersecurity Analyst",
+      "ethical_hacker": "Ethical Hacker",
+      "network_engineer": "Network Engineer",
+      "data_engineer": "Data Engineer",
+      "big_data_specialist": "Big Data Specialist",
+      "blockchain_developer": "Blockchain Developer",
+      "fintech_engineer": "Fintech Engineer",
+      "connected_car_cloud_engineer": "Connected Car Cloud Engineer",
+      "ota_systems_architect": "OTA (Over-the-Air) Systems Architect"
+    },
+  
+    "Digital_Product_Companion_Apps_and_UX_UI_Quality": {
+      "product_manager": "Product Manager",
+      "project_manager": "Project Manager",
+      "business_analyst": "Business Analyst",
+      "ios_developer": "iOS Developer",
+      "android_developer": "Android Developer",
+      "frontend_developer": "Frontend Developer",
+      "web_developer": "Web Developer",
+      "javascript_developer": "Javascript Developer",
+      "ui_designer": "UI Designer",
+      "ux_designer": "UX Designer",
+      "product_designer": "Product Designer",
+      "qa_engineer": "QA Engineer",
+      "test_automation_engineer": "Test Automation Engineer",
+      "sdet": "SDET",
+      "technical_writer": "Technical Writer",
+      "ai_prompt_engineer": "AI Prompt Engineer",
+      "in_car_hmi_designer": "In-Car HMI (Human-Machine Interface) Designer",
+      "mobile_companion_app_product_owner": "Mobile Companion App Product Owner"
+    },
+  
+    "Sales_Marketing_and_Commercial_Operations": {
+      "marketing_specialist": "Marketing Specialist",
+      "digital_marketing_specialist": "Digital Marketing Specialist",
+      "seo_specialist": "SEO Specialist",
+      "content_writer": "Content Writer",
+      "copywriter": "Copywriter",
+      "graphic_designer": "Graphic Designer",
+      "sales_executive": "Sales Executive",
+      "operations_manager": "Operations Manager",
+      "market_research_analyst": "Market Research Analyst",
+      "data_analyst": "Data Analyst",
+      "business_intelligence_analyst": "Business Intelligence Analyst",
+      "fleet_sales_executive": "Fleet Sales Executive",
+      "digital_subscription_manager": "Digital Subscription & Feature-on-Demand Manager"
+    }
+  
+}
+
+}

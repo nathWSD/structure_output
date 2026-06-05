@@ -1,0 +1,32 @@
+2. Resume → Job Description Matching (Talent Intelligence)
+LLM extracts:
+skills
+
+experience
+
+certifications
+
+seniority
+
+domain knowledge
+
+System matches:
+job requirements
+
+skill matrices
+
+salary bands
+
+Outcome:
+“Candidate fits 82% of the role; missing: Kubernetes, Terraform.”
+
+
+https://www.kaggle.com/datasets/snehaanbhawal/resume-dataset
+https://www.kaggle.com/datasets/adityarajsrv/job-descriptions-2025-tech-and-non-tech-roles
+https://publicapis.io/indeed-api
+
+take a Job description look for 5 possible CV candidates manually find the best note down
+take that Job deacription and a CV pass in a loop to LLM find ist result ranking 
+compare after loop all 5 if These final result of LLM Matches our own best choosen CV is yes prompt is good if no adjust prompt
+iterate through These other steps for other descriptions and CVs till we can prove that our prompt is reboost enough to find thebest candidate per Job description
+store results in a DB and and visualise the best prompt results and best in % to best groundthruth plot result results in say grafana  
