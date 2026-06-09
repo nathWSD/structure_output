@@ -5,6 +5,7 @@ import sys
 import os
 import json
 import httpx
+from dotenv import load_dotenv
 
 # Configure logging
 logging.basicConfig(
@@ -31,6 +32,8 @@ except ImportError:
 from schemas import OrchestratorResponse
 from prompts import AGENT_PROMPT
 
+load_dotenv()
+
 async def log_request(request: httpx.Request):
     print(f"\n\n==================================================")
     print(f" [ORCHESTRATOR REQUEST] ---> {request.method} {request.url}")
@@ -51,26 +54,17 @@ debug_client = httpx.AsyncClient(
 # 1. CONFIGURE ORCHESTRATOR MODEL
 # =====================================================================
 
-os.environ["OPENAI_API_BASE"] = "https://apphubai.wolke.uni-greifswald.de/v1"  #"https://apphubai.wolke.uni-greifswald.de/v1"#"http://models.system-service-ai/v1" 
-os.environ["OPENAI_API_KEY"] = "RYpNq6AnGTbyaWX8ijFzl5tAdjNqcxWo"   #"RYpNq6AnGTbyaWX8ijFzl5tAdjNqcxWo" # "not-needed"   
-os.environ["LITELLM_EXTRA_BODY"] = '{"chat_template_kwargs": {"enable_thinking": false}}'
-
-model_id = "qwen3-coder:30b"#"gemma3:27b" #"Qwen/Qwen3-VL-30B-A3B-Instruct-FP8" #"RedHatAI/Qwen3-32B-quantized.w4a16", #qwen3-coder:30b
-judge_uri = f"openai:/{model_id}"
-TAVILY_KEY = "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"
-
-
 
 orchestrator_model = OpenAIChatModel(
-    model_id,
+    os.getenv("MODEL_ID_UNI_GREIFSWALD"),
     provider=OpenAIProvider(
-        base_url=os.getenv("OPENAI_API_BASE"),
-        api_key=os.getenv("OPENAI_API_KEY"), 
+        base_url= os.getenv("OPENAI_API_BASE_UNI_GREIFSWALD"),
+        api_key=os.getenv("OPENAI_API_KEY_UNI_GREIFSWALD"), 
         http_client=debug_client
     ),
     profile=ModelProfile(
-        default_structured_output_mode='tool', 
-        supports_json_schema_output=False, 
+        default_structured_output_mode='tool',
+        supports_json_schema_output=False,
     ),
 )
 
@@ -97,7 +91,7 @@ async def execute_agent_prompt(user_prompt: str):
         env={**os.environ, "PYTHONIOENCODING": "utf-8"}
     )
     
-    toolset = MCPToolset(transport, init_timeout=30.0)  # Add this
+    toolset = MCPToolset(transport, init_timeout=30.0, read_timeout=900.0)  # Add this
 
     # Initialize a fresh agent
     orchestrator_agent = Agent(
@@ -109,7 +103,7 @@ async def execute_agent_prompt(user_prompt: str):
         retries=3 
     )
 
-    print("🚗 Automotive AI Orchestrator: Spawning Fresh MCP Connection...")
+    print(" AI Orchestrator: Spawning Fresh MCP Connection...")
     
     # Execute with context manager to safely open and cleanly close the subprocess
     async with orchestrator_agent:

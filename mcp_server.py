@@ -21,6 +21,7 @@ import uuid
 import requests
 from bs4 import BeautifulSoup
 import pdfplumber
+from dotenv import load_dotenv
 
 from jobspy import scrape_jobs
 
@@ -45,6 +46,7 @@ from prompts import (
 )
 
 from schemas import (
+    SCORING_HIERARCHY,
     CVExtractionOutput,
     JDExtractionOutput,
     MatchInput,
@@ -60,6 +62,7 @@ mcp = FastMCP(
     "Automotive Roles and Domains Server",
     version="1.0.0",
 )
+load_dotenv()
 
 # Detect the directory of the current script to locate the JSON files reliably
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -70,15 +73,61 @@ HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
 }
 
+from pydantic_ai.messages import ModelMessagesTypeAdapter
 
-os.environ["OPENAI_API_BASE"] = "https://apphubai.wolke.uni-greifswald.de/v1"  #"https://apphubai.wolke.uni-greifswald.de/v1"#"http://models.system-service-ai/v1" 
-os.environ["OPENAI_API_KEY"] = "RYpNq6AnGTbyaWX8ijFzl5tAdjNqcxWo"   #"RYpNq6AnGTbyaWX8ijFzl5tAdjNqcxWo" # "not-needed"   
-os.environ["LITELLM_EXTRA_BODY"] = '{"chat_template_kwargs": {"enable_thinking": false}}'
+# =====================================================================
+# TELEMETRY & TRANSPARENCY PIPELINE HELPERS
+# =====================================================================
 
-model_id = "qwen3-coder:30b"#"gemma3:27b" #"Qwen/Qwen3-VL-30B-A3B-Instruct-FP8" #"RedHatAI/Qwen3-32B-quantized.w4a16", #qwen3-coder:30b
-judge_uri = f"openai:/{model_id}"
-TAVILY_KEY = "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"
+def append_subagent_trace(subagent_name: str, messages: list):
+    """Appends internal sub-agent message steps to a central trace file."""
+    trace_file = "subagent_trace.json"
+    try:
+        traces = []
+        if os.path.exists(trace_file):
+            with open(trace_file, "r", encoding="utf-8") as f:
+                try:
+                    traces = json.load(f)
+                except Exception:
+                    traces = []
+                    
+        # Safely serialize Pydantic-AI message schemas using the official TypeAdapter
+        serialized_messages = json.loads(ModelMessagesTypeAdapter.dump_json(messages).decode("utf-8"))
+        
+        traces.append({
+            "subagent": subagent_name,
+            "messages": serialized_messages
+        })
+        
+        with open(trace_file, "w", encoding="utf-8") as f:
+            json.dump(traces, f, indent=2)
+    except Exception as e:
+        sys.stderr.write(f" -> [TELEMETRY ERROR] Trace append failed: {str(e)}\n")
+        sys.stderr.flush()
 
+
+def save_subagent_final_output(subagent_name: str, identifier: str, payload_dict: dict):
+    """Saves the intermediate structured models parsed by specialized agents."""
+    outputs_file = "subagent_outputs.json"
+    try:
+        outputs = {}
+        if os.path.exists(outputs_file):
+            with open(outputs_file, "r", encoding="utf-8") as f:
+                try:
+                    outputs = json.load(f)
+                except Exception:
+                    outputs = {}
+                    
+        if subagent_name not in outputs:
+            outputs[subagent_name] = {}
+            
+        outputs[subagent_name][identifier] = payload_dict
+        
+        with open(outputs_file, "w", encoding="utf-8") as f:
+            json.dump(outputs, f, indent=2)
+    except Exception as e:
+        sys.stderr.write(f" -> [TELEMETRY ERROR] Final output save failed: {str(e)}\n")
+        sys.stderr.flush()
 
 def log_subagent_activity(message: str):
     """Writes subagent logs to a local file so they don't break the MCP stdio stream"""
@@ -135,10 +184,10 @@ subagent_debug_client = httpx.AsyncClient(
 # Create the official OpenAI client for the sub-agents
 
 model = OpenAIChatModel(
-    model_id,
+    os.getenv("MODEL_ID_UNI_GREIFSWALD"),
     provider=OpenAIProvider(
-        base_url= os.getenv("OPENAI_API_BASE"),
-        api_key=os.getenv("OPENAI_API_KEY"), 
+        base_url= os.getenv("OPENAI_API_BASE_UNI_GREIFSWALD"),
+        api_key=os.getenv("OPENAI_API_KEY_UNI_GREIFSWALD"), 
         http_client=subagent_debug_client
     ),
     profile=ModelProfile(
@@ -146,7 +195,7 @@ model = OpenAIChatModel(
         supports_json_schema_output=False,
     ),
 )
-extra_body_dict = json.loads(os.getenv("LITELLM_EXTRA_BODY"))
+extra_body_dict = json.loads(os.getenv("LITELLM_EXTRA_BODY_UNI_GREIFSWALD"))
 settings =  ModelSettings(
     extra_body=extra_body_dict
 )
@@ -288,6 +337,21 @@ def get_jobs_by_domain() -> str:
     except Exception as e:
         return json.dumps({"error": f"An unexpected error occurred: {str(e)}"}, indent=2)
 
+@mcp.resource("matcher://scoring-framework")
+def get_scoring_framework() -> str:
+    """
+    Returns the official scoring hierarchy used by the matcher agent.
+
+    This resource defines:
+    - All scoring categories (must-have, experience, domain, toolchain, etc.)
+    - The weight of each category (e.g., must-have = 40 points)
+    - The meaning and purpose of each category
+    - The evaluation criteria the agent MUST follow when assigning points
+
+    The matcher agent MUST fetch this resource before scoring a candidate.
+    """
+    return SCORING_HIERARCHY.model_dump_json(indent=2)
+
 
 # =====================================================================
 # TOOLS
@@ -319,7 +383,23 @@ def get_job_description(job_key: str) -> str:
     except Exception as e:
         return f"An error occurred while fetching the description: {str(e)}"
 
-
+@mcp.tool()
+def register_raw_jd_text(jd_text: str) -> ReferenceHandle:
+    """
+    Registers a raw pasted job description string into the active environment
+    so it can be retrieved by structured extraction sub-agents.
+    """
+    sys.stderr.write(" -> [TOOL] Registering raw pasted JD text in environment\n")
+    sys.stderr.flush()
+    
+    # Store the raw text directly in the registry payload
+    ref = env.write(
+        data_type="scraped_jobs_list",  # Keeps it compatible with Case A of run_jd_extraction_agent
+        payload=jd_text,
+        summary="Raw pasted Job Description text",
+        size_indicator=f"{len(jd_text)} characters"
+    )
+    return ref
 
 @mcp.tool()
 def scrape_job_description_url(url: str) -> ReferenceHandle:
@@ -429,7 +509,8 @@ async def run_cv_extraction_agent(pdf_text_ref_id: str) -> ReferenceHandle:
         deps=inputs,
         usage_limits=UsageLimits(request_limit=5)
     )
-    
+    append_subagent_trace("CV Extraction Agent", result.all_messages())
+    save_subagent_final_output("CV Extraction Profiles", result.output.candidate_name, result.output.model_dump())
     # 3. Write the structured schema output to the environment and return a clean pointer
     structured_ref = env.write(
         data_type="structured_cv",
@@ -444,17 +525,44 @@ async def run_cv_extraction_agent(pdf_text_ref_id: str) -> ReferenceHandle:
 async def run_jd_extraction_agent(jobs_list_ref_id: str, index: int) -> ReferenceHandle:
     """
     Extracts a specific job from a scraped job list reference and structures its requirements.
-    Saves the structured JDExtractionOutput back to the environment.
+    Saves the JDExtractionOutput back to the environment.
     """
-    # 1. Read the list of dicts from our environment using the reference
-    jobs_list = env.read(jobs_list_ref_id)
+    # 1. Read the payload from our environment using the reference
+    payload = env.read(jobs_list_ref_id)
     
-    if index < 0 or index >= len(jobs_list):
-        raise IndexError(f"Index {index} out of bounds for job list size {len(jobs_list)}")
+    # Normalize payload into a dictionary representing the target job
+    if isinstance(payload, str):
+        # Case A: The payload is a raw pasted JD string (HR Recruiter Mode)
+        target_job = {
+            "title": "Pasted Position",
+            "company": "Direct Input",
+            "location": "Direct Input",
+            "description": payload,
+            "url": "Direct Input"
+        }
+    elif isinstance(payload, dict):
+        # Case B: The payload is already a single job dictionary
+        target_job = payload
+    elif isinstance(payload, list):
+        # Case C: The payload is a list (Job Seeker / Scraped Mode)
+        if index < 0 or index >= len(payload):
+            raise IndexError(f"Index {index} out of bounds for job list size {len(payload)}")
+        target_item = payload[index]
         
-    target_job = jobs_list[index]
-    
-    # Safeguard: Convert None values to strings
+        if isinstance(target_item, str):
+            target_job = {
+                "title": "Pasted Position",
+                "company": "Direct Input",
+                "location": "Direct Input",
+                "description": target_item,
+                "url": "Direct Input"
+            }
+        else:
+            target_job = target_item
+    else:
+        raise ValueError(f"Unsupported payload type in reference {jobs_list_ref_id}: {type(payload)}")
+        
+    # Safeguard: Convert None values to strings safely
     title = target_job.get("title") or "Unknown"
     company = target_job.get("company") or "Unknown"
     location = target_job.get("location") or "Unknown"
@@ -464,9 +572,8 @@ async def run_jd_extraction_agent(jobs_list_ref_id: str, index: int) -> Referenc
     # FAST-FAIL GUARD: If description is empty, do not run the sub-agent!
     if not description.strip() or len(description.strip()) < 50:
         raise ValueError(
-            f"The scraped description for '{title}' at '{company}' is empty. "
-            "The extraction sub-agent cannot proceed. Please ensure the search tool "
-            "is fetching full descriptions (try enabling linkedin_fetch_description)."
+            f"The description for '{title}' is empty or too short. "
+            "The extraction sub-agent cannot proceed."
         )
         
     # Build JDRawDataInput safely
@@ -478,14 +585,17 @@ async def run_jd_extraction_agent(jobs_list_ref_id: str, index: int) -> Referenc
         url=url
     )
     
-    sys.stderr.write(f" -> [SUB-AGENT] Parsing cached job at index {index}: {job_data.title}\n")
+    sys.stderr.write(f" -> [SUB-AGENT] Parsing cached job: {job_data.title}\n")
     sys.stderr.flush()
     
     prompt = f"Structure the requirements for this job posting:\n{job_data.description}"
     
     # 2. Run the sub-agent
     result = await jd_extraction_subagent.run(prompt, deps=job_data)
-    
+
+    append_subagent_trace(f"JD Extraction Agent ({result.output.job_title})", result.all_messages())
+    save_subagent_final_output("JD Extraction Demands", result.output.job_title, result.output.model_dump())
+
     # 3. Write output to environment and return a reference pointer
     jd_ref = env.write(
         data_type="structured_jd",
@@ -523,13 +633,19 @@ async def run_matcher_agent(cv_ref_id: str, jd_ref_id: str) -> ReferenceHandle:
         f"Perform matching evaluation on these parameters:\n{json.dumps(match_payload, indent=2)}",
         usage_limits=UsageLimits(request_limit=15)
     )
+
+    candidate_name = cv_data.candidate_name
+    job_title = jd_data.job_title
+    match_key = f"{candidate_name} -> {job_title}"
+    append_subagent_trace(f"Matcher Agent ({match_key})", result.all_messages())
+    save_subagent_final_output("Matcher Comparative Results", match_key, result.output.model_dump())
     
     # 3. Write MatchOutput back to the environment
     match_ref = env.write(
         data_type="match_report",
         payload=result.output,
-        summary=f"Compatibility evaluation result. Score: {result.output.compatibility_score}/100",
-        size_indicator=f"Score: {result.output.compatibility_score}"
+        summary="Detailed candidate-to-role compatibility and multi-dimensional alignment report.",
+        size_indicator="Category-based breakdown analysis"
     )
     return match_ref
 
@@ -693,7 +809,7 @@ jd_extraction_subagent = Agent(
     model_settings=sub_agent_settings,
     system_prompt=JOB_DESCRIPTION_PROMPT,
     output_type=JDExtractionOutput,
-    tools=[get_job_description, get_automotive_domains, get_jobs_by_domain],
+    tools=[get_job_description, get_automotive_domains, get_jobs_by_domain, register_raw_jd_text],
     retries=3
 )
 
@@ -704,7 +820,7 @@ matcher_subagent = Agent(
     model_settings=sub_agent_settings,
     system_prompt=MATCHER_PROMPT,
     output_type=MatchOutput,
-    tools=[get_job_description, get_automotive_domains, get_jobs_by_domain],
+    tools=[get_scoring_framework],
     retries=3
 )
 

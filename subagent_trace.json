@@ -1,0 +1,533 @@
+[
+  {
+    "subagent": "JD Extraction Agent (Machine Learning Engineer)",
+    "messages": [
+      {
+        "parts": [
+          {
+            "content": "\n# SPECIALIZED JOB DESCRIPTION EXTRACTION PROTOCOL\n\nYou are a strict Requirements Analyst agent. Your objective is to extract the strict, non-negotiable requirements, day-to-day responsibilities, and system classifications from an external Job Description (JD) and map them to our standard corporate taxonomy.\n\nYou have access to tools to view our corporate domains (`get_automotive_domains`) and job-to-domain mappings (`get_jobs_by_domain`). You must align any external job posting with our internal corporate roles and structures.\n\n---\n\n## 1. STRATEGIC IN-COMPANY ALIGNMENT (EFFICIENCY FIRST)\n- **Direct Input Policy:** If the raw job description text is already supplied in your input or user prompt, do NOT call any scraping or search tools.\n- **Conditional Taxonomy Querying:** Only query `get_jobs_by_domain` and `get_automotive_domains` if the target domain of the job description is highly ambiguous or if you need to determine where it fits into the internal architecture. If the domain is obvious (e.g., a cloud engineering role fits under Cloud and Infrastructure), skip the reference tool calls.\n\n---\n\n## 2. STEPS TO FOLLOW DURING ANALYSIS\n1. **Analyze Raw Text:** Read the provided job description and extract its core requirements directly.\n2. **Classify the Target Domain:** Match the posting's core responsibilities to one of our main corporate domains.\n3. **Isolate Hard vs. Soft Requirements:** Separate non-negotiable prerequisites (must-have) from secondary preferences (nice-to-have).\n4. **Identify Compliance & Safety Requirements:** Highlight required safety ratings (e.g., ASIL D, ASIL B), design guidelines (e.g., MISRA C), and development processes (e.g., ISO 26262, ASPICE).\n\n---\n\n## 3. WHAT TO DO\n- **Specify the Integration Context:** Clearly indicate if the role involves working with physical hardware-in-the-loop (HIL) simulators, target microcontrollers on-site, or host-PC/cloud infrastructure.\n- **Identify Key Toolchains:** Extract the specific software tools requested (e.g., Vector DaVinci, MATLAB/Simulink, dSPACE ControlDesk, Jira) to enable accurate candidate matching.\n- **Extract Specific Responsibilities:** List concrete daily tasks, such as \"configuring basic software (BSW) stacks\" or \"designing responsive frontend layouts.\"\n\n---\n\n## 4. WHAT TO AVOID\n- **AVOID Generic Categorization:** Do not list generic requirements like \"good programming skills.\" Translate them into specific requirements: \"Required proficiency in modern C++ and Object-Oriented design patterns.\"\n- **AVOID Hallucinating Toolchains:** Do not assume development tools are required unless they are explicitly mentioned in the text.\n- **AVOID Omitting Compliance Standards:** Never omit automotive-specific standards (such as ISO 26262 or ASPICE). These are critical filters for candidate alignment.\n",
+            "timestamp": "2026-06-09T13:40:03.008079Z",
+            "dynamic_ref": null,
+            "part_kind": "system-prompt"
+          },
+          {
+            "content": "Structure the requirements for this job posting:\nMachine Learning Engineer\nORGN Technologies\n3820 Cessna Drive, Richmond, BC\nHybrid work\n$95,000\u2013$135,000 a year - Permanent, Full-time\n\nJob details\nPay\n$95,000\u2013$135,000 a year\nJob type\nPermanent\nFull-time\n\nLocation\n3820 Cessna Drive, Richmond, BC\n\nBenefits\nPulled from the full job description\n\nStock options\nLife insurance\nOn-site gym\nCasual dress\n\nFull job description\nMachine Learning Engineer\n\nOrgn Technologies is building infrastructure for the physical collectibles market, starting with high-value trading cards, sports cards, comics, and related collector assets. Our goal is to create a trusted platform where collectors can discover, verify, manage, and safely trade physical collectibles online.\n\nWe are an early-stage, funded, and building toward our MVP. The engineering team is small, hands-on, and focused on shipping reliable systems from first principles. We are looking for a Machine Learning Engineer with strong experience in computer vision, vision-language models, and multimodal AI. This role will focus mainly on building the vision pipeline that helps our platform understand collectible images, identify item attributes, compare visual similarity, detect quality issues, and support trust and verification workflows.\n\nThis is a practical engineering role. You will work closely with product and engineering to turn ambiguous visual recognition and marketplace trust problems into useful ML-powered product features.\n\nLocation: Richmond, BC\n\nWork Model: On-site/hybrid. The initial phase is expected to be mostly in office for fast team building and product execution, with hybrid flexibility as the team scales.\n\nEmployment Type: Full-time, permanent\n\nPay: CA$95,000.00-CA$135,000.00 per year + Stock Options\n\nWhat You\u2019ll Do\n\nDesign, prototype, and improve computer vision and vision-language model systems for collectible item understanding\nBuild ML workflows for image quality checks, item recognition, visual matching, attribute extraction, and anomaly detection\nWork with image and text data, including collectible photos, item titles, descriptions, metadata, and human review feedback\nUse VLMs and multimodal models to support visual reasoning, classification, similarity, and item intelligence features\nCreate evaluation pipelines for model quality, confidence scoring, edge cases, false positives, false negatives, and human review workflows\nHelp define which parts of the vision pipeline should be automated, assisted by AI, or reviewed by humans\nCollaborate with product and engineering teammates to integrate model outputs into user-facing marketplace features\nDocument assumptions, model limitations, risks, and technical tradeoffs clearly\n\nWhat We\u2019re Looking For\n\nExperience building ML or AI systems that solve real product, research, or operational problems\nStrong experience with computer vision, vision-language models, or multimodal machine learning\nHands-on experience with image modelling tasks such as classification, detection, segmentation, OCR, image similarity, embeddings, or visual retrieval\nStrong Python skills and familiarity with ML libraries such as PyTorch, TensorFlow, scikit-learn, OpenCV, pandas, or similar\nAbility to evaluate model performance beyond simple accuracy, including edge cases, error analysis, confidence thresholds, and production failure modes\nComfort working with messy real-world visual data, imperfect labels, and evolving product requirements\nClear communication, pragmatic technical judgment, and the ability to explain model tradeoffs to technical and non-technical teammates\nComfort operating in an early-stage startup where ownership is high and requirements are still evolving\n\nNice to Have\n\nExperience with VLMs, CLIP-style models, multimodal embeddings, visual question answering, image-text retrieval, or LLM-assisted vision workflows\nExperience building image pipelines for marketplaces, ecommerce, authentication, trust and safety, fraud detection, logistics, fintech, or high-value asset platforms\nFamiliarity with model evaluation tooling, annotation workflows, active learning, or human-in-the-loop review systems\nExperience with MLOps tools such as MLflow, Weights & Biases, Airflow, or similar\nInterest in trading cards, sports cards, TCGs, comics, or collector communities\n\nHow to Apply\n\nPlease apply with your resume and links to relevant projects, technical writing, GitHub, portfolio work, or examples of shipped ML systems.\n\nDo not include passwords, API keys, government ID numbers, banking details, SIN, copies of permits, or other sensitive credentials in your application. Any legally required onboarding documents will only be requested after the appropriate hiring stage through secure channels.\n\nOrgn Technologies Inc. is an equal opportunity employer. We evaluate candidates based on relevant skills, experience, judgment, and ability to contribute to the role.\n\nBenefits:\n\nLife insurance\nOn-site gym\nStock options\nOrgn Technologies Inc. is an equal opportunity employer. We evaluate candidates based on relevant skills, experience, judgment, and ability to contribute to the role.\n\nPay: $95,000.00-$135,000.00 per year\n\nBenefits:\n\nCasual dress\nLife insurance\nOn-site gym\nStock options\nAbility to commute/relocate:\n\nRichmond, BC: reliably commute or plan to relocate before starting work (preferred)\nEducation:\n\nBachelor's Degree (preferred)\nExperience:\n\nMachine learning: 3 years (preferred)\nLocation:\n\nRichmond, BC (preferred)\nWork Location: Hybrid remote in Richmond, BC",
+            "timestamp": "2026-06-09T13:40:03.008079Z",
+            "part_kind": "user-prompt"
+          }
+        ],
+        "timestamp": "2026-06-09T13:40:03.008079Z",
+        "instructions": null,
+        "kind": "request",
+        "run_id": "019eac9c-9340-72d0-be59-84146b8910a9",
+        "conversation_id": "019eac9c-9340-72d0-be59-84130c2151ce",
+        "metadata": null
+      },
+      {
+        "parts": [
+          {
+            "tool_name": "get_automotive_domains",
+            "args": "{}",
+            "tool_call_id": "rWgrznV1zIFYeZwZGDWvYaCAELws6EtX",
+            "tool_kind": null,
+            "id": null,
+            "provider_name": null,
+            "provider_details": null,
+            "part_kind": "tool-call"
+          }
+        ],
+        "usage": {
+          "input_tokens": 3165,
+          "cache_write_tokens": 0,
+          "cache_read_tokens": 0,
+          "output_tokens": 17,
+          "input_audio_tokens": 0,
+          "cache_audio_read_tokens": 0,
+          "output_audio_tokens": 0,
+          "details": {}
+        },
+        "model_name": "unsloth/Qwen3.6-35B-A3B-GGUF:Q4_K_M",
+        "timestamp": "2026-06-09T13:40:05.192259Z",
+        "kind": "response",
+        "provider_name": "openai",
+        "provider_url": "https://apphubai.wolke.uni-greifswald.de/v1/",
+        "provider_details": {
+          "finish_reason": "tool_calls",
+          "timestamp": "2026-06-09T13:40:07Z"
+        },
+        "provider_response_id": "chatcmpl-kr9k4FQAskno299oSvXCZSYDz8VNmI4l",
+        "finish_reason": "tool_call",
+        "run_id": "019eac9c-9340-72d0-be59-84146b8910a9",
+        "conversation_id": "019eac9c-9340-72d0-be59-84130c2151ce",
+        "metadata": null,
+        "state": "complete"
+      },
+      {
+        "parts": [
+          {
+            "tool_name": "get_automotive_domains",
+            "content": "[\n  {\n    \"name\": \"Vehicle_Tech_and_Software_Defined_Vehicles\",\n    \"description\": \"This domain governs the physical vehicle's computing core, transitioning traditional mechanical cars into Software-Defined Vehicles (SDVs). It encompasses real-time embedded systems programming for Electronic Control Units (ECUs) and microcontroller architectures. Key sub-fields include Advanced Driver Assistance Systems (ADAS) and Autonomous Driving, which rely on AI and Machine Learning for complex tasks like computer vision, path planning, and sensor fusion (LiDAR, radar, cameras). It also includes Hardware-in-the-Loop (HIL) testing to safely validate code against simulated physical hardware, and strict adherence to functional safety standards (ISO 26262). Additionally, it integrates advanced cockpit graphics (such as AR/VR head-up displays and gaming engines for 3D dashboard rendering) and physical assembly automation through robotics engineering on the manufacturing floor.\"\n  },\n  {\n    \"name\": \"Cloud_Data_and_Connected_Car_Infrastructure\",\n    \"description\": \"This domain covers off-board distributed systems, managing the secure digital link between the vehicle fleet and the manufacturer's backend. Sub-fields include cloud architecture (AWS, Azure) and DevOps/SRE practices designed to maintain high availability for millions of concurrent vehicle connections. It handles telemetry data ingestion, processing massive, real-time data streams from car sensors to enable fleet analytics and predictive maintenance. Security is a critical sub-field here, utilizing cybersecurity analysts and ethical hackers to secure vehicle-to-everything (V2X) communications and critical OTA (Over-the-Air) software distribution systems. Additionally, it integrates enterprise software components (Java, .NET, Python), blockchain for supply chain ledger tracking, and fintech systems to handle direct-from-vehicle digital transactions, such as automated tolling and charging payments.\"\n  },\n  {\n    \"name\": \"Digital_Product_Companion_Apps_and_UX_UI_Quality\",\n    \"description\": \"This domain focuses on the digital touchpoints connecting customers with the brand and the overall software quality across web, mobile, and in-car systems. It is led by product and project managers who guide the lifecycle of features from concept to release. UX/UI and Human-Machine Interface (HMI) design are core sub-fields here, ensuring that in-car screens and menus are intuitive and cause minimal driver distraction. Mobile engineering (iOS and Android) is central to building companion apps that allow users to remotely lock, locate, or pre-heat their vehicles. The domain also encompasses rigorous quality assurance, utilizing automated testing, manual QA, and Software Development Engineers in Test (SDET) to systematically verify application performance, user journeys, and technical writing documentation before software is pushed to production.\"\n  },\n  {\n    \"name\": \"Sales_Marketing_and_Commercial_Operations\",\n    \"description\": \"This domain focuses on driving commercial growth, managing customer relationships, and modernizing automotive business models. Key sub-fields include market research and business intelligence, which leverage data analytics to forecast consumer demand and optimize vehicle pricing. It covers both digital and traditional marketing operations (SEO, copywriters, and graphic designers) to build brand awareness for new vehicle launches. Commercial operations handle complex dealer network management systems and fleet sales accounts. Furthermore, as vehicles become more software-driven, this domain manages 'Features-on-Demand' (FoD) and digital subscription services, handling the business strategy, customer billing, and digital storefronts required for post-purchase software upgrades (such as range extension or upgraded navigation packages).\"\n  }\n]",
+            "tool_call_id": "rWgrznV1zIFYeZwZGDWvYaCAELws6EtX",
+            "tool_kind": null,
+            "metadata": null,
+            "timestamp": "2026-06-09T13:40:05.228964Z",
+            "outcome": "success",
+            "part_kind": "tool-return"
+          }
+        ],
+        "timestamp": "2026-06-09T13:40:05.229973Z",
+        "instructions": null,
+        "kind": "request",
+        "run_id": "019eac9c-9340-72d0-be59-84146b8910a9",
+        "conversation_id": "019eac9c-9340-72d0-be59-84130c2151ce",
+        "metadata": null
+      },
+      {
+        "parts": [
+          {
+            "tool_name": "get_jobs_by_domain",
+            "args": "{}",
+            "tool_call_id": "IqO9caBObtv7tOkxAK0UeMO4ribGqYkW",
+            "tool_kind": null,
+            "id": null,
+            "provider_name": null,
+            "provider_details": null,
+            "part_kind": "tool-call"
+          }
+        ],
+        "usage": {
+          "input_tokens": 3935,
+          "cache_write_tokens": 0,
+          "cache_read_tokens": 3181,
+          "output_tokens": 16,
+          "input_audio_tokens": 0,
+          "cache_audio_read_tokens": 0,
+          "output_audio_tokens": 0,
+          "details": {}
+        },
+        "model_name": "unsloth/Qwen3.6-35B-A3B-GGUF:Q4_K_M",
+        "timestamp": "2026-06-09T13:40:05.582316Z",
+        "kind": "response",
+        "provider_name": "openai",
+        "provider_url": "https://apphubai.wolke.uni-greifswald.de/v1/",
+        "provider_details": {
+          "finish_reason": "tool_calls",
+          "timestamp": "2026-06-09T13:40:07Z"
+        },
+        "provider_response_id": "chatcmpl-pRN2r8GKZy21ZlIhjsbFdYg1HiA5PFVU",
+        "finish_reason": "tool_call",
+        "run_id": "019eac9c-9340-72d0-be59-84146b8910a9",
+        "conversation_id": "019eac9c-9340-72d0-be59-84130c2151ce",
+        "metadata": null,
+        "state": "complete"
+      },
+      {
+        "parts": [
+          {
+            "tool_name": "get_jobs_by_domain",
+            "content": "{\n  \"Vehicle_Tech_and_Software_Defined_Vehicles\": {\n    \"systems_engineer\": \"Systems Engineer\",\n    \"robotics_engineer\": \"Robotics Engineer\",\n    \"iot_engineer\": \"IoT Engineer\",\n    \"ar_developer\": \"AR Developer\",\n    \"vr_developer\": \"VR Developer\",\n    \"game_developer\": \"Game Developer\",\n    \"ai_engineer\": \"AI Engineer\",\n    \"machine_learning_engineer\": \"Machine Learning Engineer\",\n    \"embedded_systems_engineer\": \"Embedded Systems Engineer\",\n    \"adas_autonomous_driving_engineer\": \"ADAS / Autonomous Driving Engineer\",\n    \"ecu_software_developer\": \"ECU Software Developer\",\n    \"hil_test_engineer\": \"Hardware-in-the-Loop (HIL) Test Engineer\",\n    \"functional_safety_engineer\": \"Functional Safety Engineer (ISO 26262)\"\n  },\n  \"Cloud_Data_and_Connected_Car_Infrastructure\": {\n    \"software_engineer\": \"Software Engineer\",\n    \"software_developer\": \"Software Developer\",\n    \"backend_developer\": \"Backend Developer\",\n    \"full_stack_developer\": \"Full Stack Developer\",\n    \"python_developer\": \"Python Developer\",\n    \"java_developer\": \"Java Developer\",\n    \"dotnet_developer\": \".NET Developer\",\n    \"devops_engineer\": \"DevOps Engineer\",\n    \"site_reliability_engineer\": \"SRE\",\n    \"cloud_engineer\": \"Cloud Engineer\",\n    \"cloud_architect\": \"Cloud Architect\",\n    \"solutions_architect\": \"Solutions Architect\",\n    \"cybersecurity_analyst\": \"Cybersecurity Analyst\",\n    \"ethical_hacker\": \"Ethical Hacker\",\n    \"network_engineer\": \"Network Engineer\",\n    \"data_engineer\": \"Data Engineer\",\n    \"big_data_specialist\": \"Big Data Specialist\",\n    \"blockchain_developer\": \"Blockchain Developer\",\n    \"fintech_engineer\": \"Fintech Engineer\",\n    \"connected_car_cloud_engineer\": \"Connected Car Cloud Engineer\",\n    \"ota_systems_architect\": \"OTA (Over-the-Air) Systems Architect\"\n  },\n  \"Digital_Product_Companion_Apps_and_UX_UI_Quality\": {\n    \"product_manager\": \"Product Manager\",\n    \"project_manager\": \"Project Manager\",\n    \"business_analyst\": \"Business Analyst\",\n    \"ios_developer\": \"iOS Developer\",\n    \"android_developer\": \"Android Developer\",\n    \"frontend_developer\": \"Frontend Developer\",\n    \"web_developer\": \"Web Developer\",\n    \"javascript_developer\": \"Javascript Developer\",\n    \"ui_designer\": \"UI Designer\",\n    \"ux_designer\": \"UX Designer\",\n    \"product_designer\": \"Product Designer\",\n    \"qa_engineer\": \"QA Engineer\",\n    \"test_automation_engineer\": \"Test Automation Engineer\",\n    \"sdet\": \"SDET\",\n    \"technical_writer\": \"Technical Writer\",\n    \"ai_prompt_engineer\": \"AI Prompt Engineer\",\n    \"in_car_hmi_designer\": \"In-Car HMI (Human-Machine Interface) Designer\",\n    \"mobile_companion_app_product_owner\": \"Mobile Companion App Product Owner\"\n  },\n  \"Sales_Marketing_and_Commercial_Operations\": {\n    \"marketing_specialist\": \"Marketing Specialist\",\n    \"digital_marketing_specialist\": \"Digital Marketing Specialist\",\n    \"seo_specialist\": \"SEO Specialist\",\n    \"content_writer\": \"Content Writer\",\n    \"copywriter\": \"Copywriter\",\n    \"graphic_designer\": \"Graphic Designer\",\n    \"sales_executive\": \"Sales Executive\",\n    \"operations_manager\": \"Operations Manager\",\n    \"market_research_analyst\": \"Market Research Analyst\",\n    \"data_analyst\": \"Data Analyst\",\n    \"business_intelligence_analyst\": \"Business Intelligence Analyst\",\n    \"fleet_sales_executive\": \"Fleet Sales Executive\",\n    \"digital_subscription_manager\": \"Digital Subscription & Feature-on-Demand Manager\"\n  }\n}",
+            "tool_call_id": "IqO9caBObtv7tOkxAK0UeMO4ribGqYkW",
+            "tool_kind": null,
+            "metadata": null,
+            "timestamp": "2026-06-09T13:40:05.588636Z",
+            "outcome": "success",
+            "part_kind": "tool-return"
+          }
+        ],
+        "timestamp": "2026-06-09T13:40:05.589651Z",
+        "instructions": null,
+        "kind": "request",
+        "run_id": "019eac9c-9340-72d0-be59-84146b8910a9",
+        "conversation_id": "019eac9c-9340-72d0-be59-84130c2151ce",
+        "metadata": null
+      },
+      {
+        "parts": [
+          {
+            "tool_name": "final_result",
+            "args": "{\"job_title\":\"Machine Learning Engineer\",\"target_domain\":\"Vehicle_Tech_and_Software_Defined_Vehicles\",\"required_toolchains\":[\"PyTorch\", \"TensorFlow\", \"scikit-learn\", \"OpenCV\", \"pandas\", \"MLflow\", \"Weights & Biases\", \"Airflow\"],\"compliance_and_standards\":[],\"responsibilities\":[\"Design, prototype, and improve computer vision and vision-language model systems for item understanding\", \"Build ML workflows for image quality checks, item recognition, visual matching, attribute extraction, and anomaly detection\", \"Evaluate model performance beyond simple accuracy, including edge cases, error analysis, confidence thresholds, and production failure modes\", \"Integrate model outputs into user-facing marketplace features\", \"Create evaluation pipelines for model quality, confidence scoring, and human review workflows\", \"Document assumptions, model limitations, risks, and technical tradeoffs\"],\"requirements\":{\"must_have\": [\"3+ years of experience in Machine Learning\", \"Strong experience with computer vision, vision-language models, or multimodal machine learning\", \"Hands-on experience with image modelling tasks: classification, detection, segmentation, OCR, image similarity, embeddings, or visual retrieval\", \"Strong Python skills and familiarity with ML libraries such as PyTorch, TensorFlow, scikit-learn, OpenCV, or pandas\", \"Ability to evaluate model performance beyond simple accuracy, including edge cases, error analysis, confidence thresholds, and production failure modes\"], \"nice_to_have\": [\"Experience with VLMs, CLIP-style models, multimodal embeddings, visual question answering, image-text retrieval, or LLM-assisted vision workflows\", \"Experience building image pipelines for marketplaces, ecommerce, authentication, trust and safety, fraud detection, logistics, fintech, or high-value asset platforms\", \"Familiarity with model evaluation tooling, annotation workflows, active learning, or human-in-the-loop review systems\", \"Experience with MLOps tools such as MLflow, Weights & Biases, Airflow, or similar\", \"Interest in trading cards, sports cards, TCGs, comics, or collector communities\", \"Bachelor's Degree (preferred)\"]},\"salary_range\":\"$95,000\u2013$135,000 a year\",\"experience\":{\"years_of_experience\": \"3\", \"experience_level\": \"Experienced\"},\"location\":\"\\\"3820 Cessna Drive, Richmond, BC\\\"\",\"job_type\":\"\\\"Permanent\\\"\",\"workplace_type\":\"\\\"Hybrid\\\"\",\"source_url\":\"null\"}",
+            "tool_call_id": "Fm7TfOb9qYv85AZkQcaltraeBzd4iTTQ",
+            "tool_kind": null,
+            "id": null,
+            "provider_name": null,
+            "provider_details": null,
+            "part_kind": "tool-call"
+          }
+        ],
+        "usage": {
+          "input_tokens": 4875,
+          "cache_write_tokens": 0,
+          "cache_read_tokens": 0,
+          "output_tokens": 623,
+          "input_audio_tokens": 0,
+          "cache_audio_read_tokens": 0,
+          "output_audio_tokens": 0,
+          "details": {}
+        },
+        "model_name": "unsloth/Qwen3.6-35B-A3B-GGUF:Q4_K_M",
+        "timestamp": "2026-06-09T13:40:10.666687Z",
+        "kind": "response",
+        "provider_name": "openai",
+        "provider_url": "https://apphubai.wolke.uni-greifswald.de/v1/",
+        "provider_details": {
+          "finish_reason": "tool_calls",
+          "timestamp": "2026-06-09T13:40:12Z"
+        },
+        "provider_response_id": "chatcmpl-5Xr44AzZ2gNMEAes2s9ExuZVhKxF5y9H",
+        "finish_reason": "tool_call",
+        "run_id": "019eac9c-9340-72d0-be59-84146b8910a9",
+        "conversation_id": "019eac9c-9340-72d0-be59-84130c2151ce",
+        "metadata": null,
+        "state": "complete"
+      },
+      {
+        "parts": [
+          {
+            "tool_name": "final_result",
+            "content": "Final result processed.",
+            "tool_call_id": "Fm7TfOb9qYv85AZkQcaltraeBzd4iTTQ",
+            "tool_kind": null,
+            "metadata": null,
+            "timestamp": "2026-06-09T13:40:10.667683Z",
+            "outcome": "success",
+            "part_kind": "tool-return"
+          }
+        ],
+        "timestamp": "2026-06-09T13:40:10.667683Z",
+        "instructions": null,
+        "kind": "request",
+        "run_id": "019eac9c-9340-72d0-be59-84146b8910a9",
+        "conversation_id": "019eac9c-9340-72d0-be59-84130c2151ce",
+        "metadata": null
+      }
+    ]
+  },
+  {
+    "subagent": "CV Extraction Agent",
+    "messages": [
+      {
+        "parts": [
+          {
+            "content": "\n# SPECIALIZED CV DETAILS EXTRACTION PROTOCOL\n\nYou are a highly analytical, strict Technical Auditor agent. Your objective is to extract, clean, and structure engineering profiles from raw CV/Resume texts into the `CVExtractionOutput` schema.\n\nYou have access to tools to view our corporate domains (`get_automotive_domains`), job-to-domain mappings (`get_jobs_by_domain`), and specific job details (`get_job_description`). You must align the candidate's profile to our company's vocabulary and internal architecture.\n\n---\n\n## 1. CONDITIONAL ROLE MAPPING & ALIGNMENT (EFFICIENCY FIRST)\nTo minimize tool usage and maintain performance, follow these rules:\n\n1. **Check Context First:** If the user or orchestrator has already provided corporate domains, job mappings, or reference taxonomies in your context, do NOT call `get_automotive_domains` or `get_jobs_by_domain`.\n2. **Conditional Querying:** Only query `get_automotive_domains` or `get_jobs_by_domain` if you find the candidate's core functional role highly ambiguous and require reference standards to classify them.\n3. **Selective Lookup Policy:**\n   - Only call `get_job_description` if you need to clarify specific technical stack alignments, specialized protocols, or tool requirements for a candidate's inferred role.\n   - If the candidate's profile matches standard engineering roles (e.g., a standard Python developer or AI Engineer) and their competencies are clear, you do not need to call this tool.\n   - You are permitted a **maximum of 2 calls to `get_job_description`** per CV extraction, and only when necessary. Do not perform brute-force lookups.\n\n---\n\n## 2. STEPS TO FOLLOW FOR EXTRACTION\nExtract and structure the details of the candidate CV completely:\n1. **Parse and Audit Metadata**: Extract candidate name, academic degrees, and calculate exact years of professional experience (excluding academic internships unless they represent full-time research).\n2. **Categorize Skills Rigorously**: Map and split candidate skills into our strict technical classifications:\n    - Embedded Software / Firmware\n    - High-Level Software\n    - Automotive Network Protocols\n    - Hardware & Validation Toolchains\n    - Standards & Compliance\n    - Cloud & Telematics\n3. **Deconstruct Project History**: Isolate concrete project accomplishments, listing tools actually used and the candidate's personal contribution.\n\n---\n\n## 3. TECHNICAL EVIDENCE & ACCURACY\n- **Extract Verified Facts Only**: Only capture skills and tools explicitly documented. If a candidate says they \"supervised a team using CANoe,\" they only have conceptual knowledge of CANoe unless their direct contributions specify hands-on configuration.\n- **Differentiate Development Levels**: Identify whether the candidate's software experience is at the microcontroller register level (Bare-Metal, RTOS), the automotive middleware level (AUTOSAR Classic/Adaptive), or host-PC/cloud applications.\n- **Enforce MISRA & Safety Context**: If the candidate mentions safety-critical systems, verify if they explicitly documented compliance with ISO 26262, MISRA C, or ASPICE processes.\n\n---\n\n## 4. WHAT TO AVOID\n- **AVOID Skill Inflation**: Do not upgrade an introductory or academic-level exposure to a core professional competency.\n- **AVOID Structural Guesswork**: Do not guess which domain a candidate's role fits into. Match only when technically supported by their experience.\n- **AVOID Subjective Marketing**: Strip out resume buzzwords like \"highly motivated,\" \"dynamic change-maker,\" or \"thought leader.\" Maintain a strict, objective, and quantifiable candidate profile.\n",
+            "timestamp": "2026-06-09T13:40:18.262924Z",
+            "dynamic_ref": null,
+            "part_kind": "system-prompt"
+          },
+          {
+            "content": "Please extract and structure the candidate profile from this raw text:\n\n--- Page 1 ---\n                                                                                  \n                                                                                  \n                                                                                  \n                                                                                  \n                           Nathan     Dze   Kadisoh                               \n                                                                                  \n       KI-      /  FULL-STACK                   ENTWICKLER                        \n                                                                                  \n                                                                                  \n                                                                                  \n                                                                                  \n                                                                                  \n                                                                                  \n                                                                                  \n                                                                                  \n                                                                                  \n                                                                                  \n                                                                                  \n                                                                                  \n                                                                                  \n                                                                                  \n                                                                                  \n                                                                                  \n                                                                                  \n                                                                                  \n                                                                                  \n                                                                                  \n                                                                                  \n                                                                                  \n                                                                                  \n                                                                                  \n                                                                                  \n                                   Kontakt                                        \n                                                                                  \n                                                                                  \n                           Mobil: (049) 17636466945                               \n                                                                                  \n                   Adresse: Garten Stra\u00dfe 14, 18439, Stralsund                    \n                        Email: nathan.kadisoh@gmail.com                           \n                                                                                  \n              LinkedIn: https://www.linkedin.com/in/nathan-kadisoh/               \n                       https://nathan-kadisoh.pages.dev/                          \n                                                                                  \n                      GitHub: https://github.com/nathWSD                          \n                                                                                  \n                                kenntnisse                                        \n                                                                                  \n                                                                                  \n                                                                                  \n      Ich verf\u00fcge \u00fcber umfassende Expertise im Bereich k\u00fcnstliche Intelligenz und \n     datengetriebene Modellierung, einschlie\u00dflich klassischer Verfahren, moderner \n                                                                                  \n    Deep\u2011Learning\u2011Ans\u00e4tze, agentischer Workflows sowie Training, Validierung und  \n     Integration verschiedener Modelltypen in produktive Anwendungen. Dar\u00fcber     \n                                                                                  \n   hinaus habe ich Erfahrung in der Entwicklung skalierbarer Software\u2011Architekturen .\n      Erg\u00e4nzend  bringe ich Kenntnisse in der Full\u2011Stack\u2011Entwicklung mit Python,  \n                                                                                  \n       TypeScript, React Native und Java Spring Boot sowie in datenbank\u2011 und      \n                        backendorientierten Systemen mit.                         \n                                                                                  \n                                                                                  \n                                                                                  \n                                                                                  \n\n--- Page 2 ---\n                                                                                  \n                                                                                  \n                                                                                  \n                                                                                  \n                                                                                  \n                                                                                  \n                    BERUFLICHER           WERDEGANG                               \n                                                                                  \n                                                                                  \n                                                                                  \n                                                                                  \n                                                                                  \n      ARBEIT                                                                      \n                                                                                  \n                                                                                  \n      01.05.2024 bis jetzt                                                        \n      encoway  GmbH                                                               \n                                                                                  \n      Werkstudent  KI/ Full-Stack Entwicklung.                                    \n                                                                                  \n                                                                                  \n          Entwickelte KI\u2011Systeme f\u00fcr Softwarel\u00f6sungen, darunter ein               \n          automatisiertes PDF\u2011Analysemodul, das relevante Informationen           \n                                                                                  \n          extrahiert und manuelle Dateneingaben im                                \n          Produktmodellierungsprozess erheblich reduziert.                        \n                                                                                  \n          Konzipierte und implementierte wissensbasierte Anwendungen, u. a.       \n          eine RAG\u2011Pipeline, die interne Wissensbest\u00e4nde durch semantische        \n                                                                                  \n          Suche zug\u00e4nglich macht und manuelle Recherchen zu Bauteilen und         \n          Ger\u00e4ten vollst\u00e4ndig ersetzt.                                            \n                                                                                  \n          Trainierte, evaluierte und integrierte KI\u2011Modelle f\u00fcr Aufgaben wie      \n          Textanalyse, semantische Suche, Kostenprognosen und                     \n                                                                                  \n          Entscheidungsunterst\u00fctzung, einschlie\u00dflich Finetuning von Modellen auf  \n          internen Datens\u00e4tzen sowie Einsatz von LLM\u2011APIs f\u00fcr komplexe            \n                                                                                  \n          Analyse\u2011 und Automatisierungsaufgaben.                                  \n          Verglich, benchmarkte und optimierte verschiedene Modellarchitekturen   \n                                                                                  \n          (z. B. Embedding\u2011Modelle, Textklassifikation, Objekterkennung) durch    \n          systematische Experimente, Hyperparameter\u2011Tuning und                    \n                                                                                  \n          Leistungsanalysen, um f\u00fcr jede Aufgabe das effizienteste Modell         \n          auszuw\u00e4hlen.                                                            \n                                                                                  \n          Entwickelte agentische Workflows mithilfe von Prompt Engineering und    \n          Frameworks wie Agno und Smolagent, um  mehrschrittige                   \n                                                                                  \n          Automatisierungsprozesse, Entscheidungslogiken und                      \n          modell\u00fcbergreifende Interaktionen zuverl\u00e4ssig abzubilden.               \n                                                                                  \n          Integrierte KI\u2011Funktionalit\u00e4ten in Softwarearchitekturen, einschlie\u00dflich\n          UI\u2011basierter Datenimporte, Entwicklung passender Backend\u2011Endpoints,     \n                                                                                  \n          Anbindung von Modellen zur automatisierten Analyse sowie                \n          Speicherung der Ergebnisse in der Datenbank f\u00fcr sp\u00e4tere Nutzung.        \n                                                                                  \n                                                                                  \n                                                                                  \n                                                                                  \n                                                                                  \n\n--- Page 3 ---\n                                                                                  \n                                                                                  \n                                                                                  \n                                                                                  \n                                                                                  \n                                                                                  \n      PRAKTIKUM                                                                   \n                                                                                  \n      01.08.2024 bis 17.12.2024                                                   \n                                                                                  \n      encoway  GmbH                                                               \n      Praktikant                                                                  \n                                                                                  \n                                                                                  \n          Training, Testen und Einbinden \u00fcberwiegend textbasierter Modelle        \n                                                                                  \n          f\u00fcr Aufgaben der Sprachverarbeitung.                                    \n          Entwicklung von Backend\u2011Funktionen und Arbeit mit relationalen          \n                                                                                  \n          Datenbanken zur Verarbeitung und Bereitstellung relevanter Daten.       \n          Umsetzung  von Frontend\u2011Komponenten  zur Darstellung und                \n                                                                                  \n          Nutzung KI\u2011gest\u00fctzter Funktionen.                                       \n                                                                                  \n                                                                                  \n                                                                                  \n      HOCHSCHULAUSBILDUNG                                                         \n                                                                                  \n      01.10.2022-30.09.2025                                                       \n                                                                                  \n      Hochschule  Bremen                                                          \n      Bachelor in technischer Informatik                                          \n                                                                                  \n                                                                                  \n          Car\u2011Sharing\u2011Websystem: Entwicklung eines webbasierten Systems mit       \n                                                                                  \n          Backend, Datenbank und UI                                               \n          Dokumenterkennung:  Automatische Formularanalyse mit Segmentierung      \n                                                                                  \n          und Texterkennung                                                       \n          Autonomes  Fahren: Erkennung von Verkehrszeichen und Geschwindigkeiten  \n                                                                                  \n          f\u00fcr ein robotisches Fahrzeug                                            \n                                                                                  \n      01.09.2025- jetzt                                                           \n                                                                                  \n      Hochschule  Stralsund                                                       \n      Master in angewandter Data Science und k\u00fcnstliche Intelligenz               \n                                                                                  \n                                                                                  \n          ML\u2011Modellierung: Entwicklung interaktiver Anwendungen und Bearbeitung   \n                                                                                  \n          praxisnaher Aufgaben zur Modellierung tabellarischer Daten mit Training,\n          Feature\u2011Auswahl und Vorhersage.                                         \n                                                                                  \n                                                                                  \n                                                                                  \n        SPRACHEN                                          HOBBYS                  \n                                                                                  \n                                                                                  \n         Englisch und Franz\u00f6sisch muttersprachlich        Fu\u00dfball, Schach         \n         Deutsch \u2013 C1                                                             \n                                                                                  \n                                                                                  ",
+            "timestamp": "2026-06-09T13:40:18.262924Z",
+            "part_kind": "user-prompt"
+          }
+        ],
+        "timestamp": "2026-06-09T13:40:18.262924Z",
+        "instructions": null,
+        "kind": "request",
+        "run_id": "019eac9c-ced2-718c-91ac-0549dd25cba9",
+        "conversation_id": "019eac9c-ced2-718c-91ac-0548c143183d",
+        "metadata": null
+      },
+      {
+        "parts": [
+          {
+            "tool_name": "final_result",
+            "args": "{\"years_of_experience\":1.4,\"candidate_name\":\"Nathan Dze Kadisoh\",\"education\":[{\"degree_level\": \"Bachelor\", \"field_of_study\": \"Technische Informatik\", \"institution\": \"Hochschule Bremen\", \"country\": \"Germany\", \"graduation_year\": 2025}, {\"degree_level\": \"Master\", \"field_of_study\": \"Angewandte Data Science und k\u00fcnstliche Intelligenz\", \"institution\": \"Hochschule Stralsund\", \"country\": \"Germany\", \"graduation_year\": null}],\"projects\":[{\"project_name\": \"encoway GmbH - KI/Full-Stack Entwicklung (Werkstudent)\", \"duration_months\": 7, \"tools_used\": [\"Python\", \"TypeScript\", \"React Native\", \"Java Spring Boot\", \"RAG Pipeline\", \"Agno\", \"Smolagent\", \"LLM APIs\", \"Embedding-Models\", \"Vector Databases\"], \"contribution\": \"Developed automated PDF analysis modules using OCR and semantic search to reduce manual data entry. Designed and implemented RAG pipelines for internal knowledge retrieval. Trained, evaluated, and integrated AI models for text analysis and cost forecasting. Developed agentic workflows using Agno and Smolagent. Integrated AI functionalities into full-stack software architectures including UI data imports, backend endpoints, and database storage.\"}, {\"project_name\": \"encoway GmbH - Praktikant\", \"duration_months\": 5, \"tools_used\": [\"Python\", \"Relational Databases\", \"React\"], \"contribution\": \"Trained and tested text-based NLP models. Developed backend functions for data processing and relational database management. Implemented frontend components to display and utilize AI-assisted features.\"}, {\"project_name\": \"Car-Sharing Websystem (Academic Project)\", \"duration_months\": null, \"tools_used\": [\"Web Technologies\", \"Backend Development\", \"Databases\"], \"contribution\": \"Developed a web-based car-sharing system including backend logic, database integration, and user interface.\"}, {\"project_name\": \"Dokumenterkennung (Academic Project)\", \"duration_months\": null, \"tools_used\": [\"Image Segmentation\", \"OCR\"], \"contribution\": \"Implemented automatic form analysis using segmentation and text recognition techniques.\"}, {\"project_name\": \"Autonomes Fahren (Academic Project)\", \"duration_months\": null, \"tools_used\": [\"Computer Vision\", \"Robotics\"], \"contribution\": \"Developed traffic sign and speed recognition systems for a robotic vehicle.\"}, {\"project_name\": \"ML-Modellierung (Master Project)\", \"duration_months\": null, \"tools_used\": [\"Tabular Data Analysis\", \"Feature Selection\", \"Prediction Models\"], \"contribution\": \"Developed interactive applications for tabular data modeling, including feature selection and predictive analysis.\"}],\"categorized_skills\":{\"embedded_firmware\": [], \"high_level_software\": [\"Python\", \"TypeScript\", \"Java\", \"Spring Boot\", \"React Native\", \"JavaScript\"], \"vehicle_networks\": [], \"toolchains_and_validation\": [\"Agno\", \"Smolagent\", \"RAG Frameworks\", \"LLM APIs\"], \"standards_and_compliance\": [], \"cloud_and_telematics\": [\"Relational Databases\", \"Vector Databases\"]}}",
+            "tool_call_id": "UynCbO7T8ZK2ZQm9GRxRqlfo6l6Tcw2a",
+            "tool_kind": null,
+            "id": null,
+            "provider_name": null,
+            "provider_details": null,
+            "part_kind": "tool-call"
+          }
+        ],
+        "usage": {
+          "input_tokens": 3393,
+          "cache_write_tokens": 0,
+          "cache_read_tokens": 0,
+          "output_tokens": 730,
+          "input_audio_tokens": 0,
+          "cache_audio_read_tokens": 0,
+          "output_audio_tokens": 0,
+          "details": {}
+        },
+        "model_name": "unsloth/Qwen3.6-35B-A3B-GGUF:Q4_K_M",
+        "timestamp": "2026-06-09T13:40:23.671784Z",
+        "kind": "response",
+        "provider_name": "openai",
+        "provider_url": "https://apphubai.wolke.uni-greifswald.de/v1/",
+        "provider_details": {
+          "finish_reason": "tool_calls",
+          "timestamp": "2026-06-09T13:40:25Z"
+        },
+        "provider_response_id": "chatcmpl-N1bHkpmDLE0bhceo5HdmELajwSX5nwqw",
+        "finish_reason": "tool_call",
+        "run_id": "019eac9c-ced2-718c-91ac-0549dd25cba9",
+        "conversation_id": "019eac9c-ced2-718c-91ac-0548c143183d",
+        "metadata": null,
+        "state": "complete"
+      },
+      {
+        "parts": [
+          {
+            "tool_name": "final_result",
+            "content": "Final result processed.",
+            "tool_call_id": "UynCbO7T8ZK2ZQm9GRxRqlfo6l6Tcw2a",
+            "tool_kind": null,
+            "metadata": null,
+            "timestamp": "2026-06-09T13:40:23.672794Z",
+            "outcome": "success",
+            "part_kind": "tool-return"
+          }
+        ],
+        "timestamp": "2026-06-09T13:40:23.672794Z",
+        "instructions": null,
+        "kind": "request",
+        "run_id": "019eac9c-ced2-718c-91ac-0549dd25cba9",
+        "conversation_id": "019eac9c-ced2-718c-91ac-0548c143183d",
+        "metadata": null
+      }
+    ]
+  },
+  {
+    "subagent": "CV Extraction Agent",
+    "messages": [
+      {
+        "parts": [
+          {
+            "content": "\n# SPECIALIZED CV DETAILS EXTRACTION PROTOCOL\n\nYou are a highly analytical, strict Technical Auditor agent. Your objective is to extract, clean, and structure engineering profiles from raw CV/Resume texts into the `CVExtractionOutput` schema.\n\nYou have access to tools to view our corporate domains (`get_automotive_domains`), job-to-domain mappings (`get_jobs_by_domain`), and specific job details (`get_job_description`). You must align the candidate's profile to our company's vocabulary and internal architecture.\n\n---\n\n## 1. CONDITIONAL ROLE MAPPING & ALIGNMENT (EFFICIENCY FIRST)\nTo minimize tool usage and maintain performance, follow these rules:\n\n1. **Check Context First:** If the user or orchestrator has already provided corporate domains, job mappings, or reference taxonomies in your context, do NOT call `get_automotive_domains` or `get_jobs_by_domain`.\n2. **Conditional Querying:** Only query `get_automotive_domains` or `get_jobs_by_domain` if you find the candidate's core functional role highly ambiguous and require reference standards to classify them.\n3. **Selective Lookup Policy:**\n   - Only call `get_job_description` if you need to clarify specific technical stack alignments, specialized protocols, or tool requirements for a candidate's inferred role.\n   - If the candidate's profile matches standard engineering roles (e.g., a standard Python developer or AI Engineer) and their competencies are clear, you do not need to call this tool.\n   - You are permitted a **maximum of 2 calls to `get_job_description`** per CV extraction, and only when necessary. Do not perform brute-force lookups.\n\n---\n\n## 2. STEPS TO FOLLOW FOR EXTRACTION\nExtract and structure the details of the candidate CV completely:\n1. **Parse and Audit Metadata**: Extract candidate name, academic degrees, and calculate exact years of professional experience (excluding academic internships unless they represent full-time research).\n2. **Categorize Skills Rigorously**: Map and split candidate skills into our strict technical classifications:\n    - Embedded Software / Firmware\n    - High-Level Software\n    - Automotive Network Protocols\n    - Hardware & Validation Toolchains\n    - Standards & Compliance\n    - Cloud & Telematics\n3. **Deconstruct Project History**: Isolate concrete project accomplishments, listing tools actually used and the candidate's personal contribution.\n\n---\n\n## 3. TECHNICAL EVIDENCE & ACCURACY\n- **Extract Verified Facts Only**: Only capture skills and tools explicitly documented. If a candidate says they \"supervised a team using CANoe,\" they only have conceptual knowledge of CANoe unless their direct contributions specify hands-on configuration.\n- **Differentiate Development Levels**: Identify whether the candidate's software experience is at the microcontroller register level (Bare-Metal, RTOS), the automotive middleware level (AUTOSAR Classic/Adaptive), or host-PC/cloud applications.\n- **Enforce MISRA & Safety Context**: If the candidate mentions safety-critical systems, verify if they explicitly documented compliance with ISO 26262, MISRA C, or ASPICE processes.\n\n---\n\n## 4. WHAT TO AVOID\n- **AVOID Skill Inflation**: Do not upgrade an introductory or academic-level exposure to a core professional competency.\n- **AVOID Structural Guesswork**: Do not guess which domain a candidate's role fits into. Match only when technically supported by their experience.\n- **AVOID Subjective Marketing**: Strip out resume buzzwords like \"highly motivated,\" \"dynamic change-maker,\" or \"thought leader.\" Maintain a strict, objective, and quantifiable candidate profile.\n",
+            "timestamp": "2026-06-09T13:40:18.260927Z",
+            "dynamic_ref": null,
+            "part_kind": "system-prompt"
+          },
+          {
+            "content": "Please extract and structure the candidate profile from this raw text:\n\n--- Page 1 ---\n                                                                                  \n                                                                                  \n     BIOMEDICAL ENGINEERING TECHNICIAN II                                         \n     Professional Summary                                                         \n                                                                                  \n     Versatile BMET II highly effective at working independently and as part of a team. Expertise in installation and inspection of medical devices.\n     Core Qualifications                                                          \n        Microsoft Excel, Project and Visio                                        \n        Adobe                                                                     \n        Engineering standards                                                     \n        OSHA regulations                                                          \n        MS Office proficient                                                      \n        Competency in procedure development                                       \n        Advanced anatomy knowledge                                                \n        Advanced knowledge of embedded systems                                    \n        Vast technical knowledge                                                  \n        Windows XP/Vista                                                          \n        DHCP/DNS Ethernet and Firewall proficient Excellent communication techniques\n        LAN aptitude                Self-starter                                  \n        Proficient in AVG, Printers, PC Security systems Team player              \n        Knowledge of manufacturing test methodologies. Patient and diligent       \n        Database servers            Keen eye for detail                           \n        Local remoter systems support Acutely observant                           \n        Proficiency in TCP/IP protocols Excellent problem solving skills          \n        Information security                                                      \n        Document management                                                       \n                                                                                  \n                                                                                  \n                                                                                  \n                                                                                  \n                                                                                  \n                                                                                  \n                                                                                  \n     Experience                                                                   \n     Company Name June 2008 to Current Biomedical Engineering Technician II       \n     City , State                                                                 \n                                                                                  \n        Properly respond to service calls to evaluate, diagnose, perform repair and planned maintenance (PM) on the hospital's biomedical\n        equipment.                                                                \n        Integration of software for network systems such as Philips, Hillrom, and Hugs Infant Security System as well as installs of such systems.\n        Knowledge of the application and repair of computers and servers and how they interface with medical equipment.\n        Evaluate biomedical equipment issues, implement appropriate repairs; as assigned, perform planned maintenance (PM), maintain effective\n        customer relations, follow appropriate hospital policies, procedures, hospital protocol and complete necessary documentation.\n        Follow-up with hospital staff to ensure resolution.                       \n        Assist other technicians on basic and complex repairs.                    \n        Provide efficient service delivery for all medical devices within assigned areas.\n        Share the on-call / pager responsibility.                                 \n        Document all repair actions and submit reports/summaries according to schedule.\n        Ensure proper care of spares, tools and test equipment and ensure calibration.\n        Maintain approved parts inventory.                                        \n        Brings ideas/concerns to supervisor; participates in department decision-making.\n        Assist senior biomedical equipment technicians or leads with in-service educational programs on equipment use to staff.\n        Ensure all work orders, vendor service reports, PM activities, purchase orders and other duties are documented in an accurate and timely\n        manner.                                                                   \n        Perform electrical safety checks on incoming medical equipment and monitor maintenance and repair records for them also.\n        Add to or change original components to meet specific or diagnostic requirements.\n        Maintain, inspect, install devices and system configurations, and oversee the hospital's Hugs infant security system which protects all\n        pediatric / newborn patients from abduction.                              \n        Review outcome of preventive maintenance actions and make recommendations to department staff concerning outcomes.\n        Knowledge of basic anatomy and physiology as applied to the use of biomedical equipment.\n        Knowledge of color code conventions used in component and wiring marking. \n        Promoted to one of 3 Lead Techs overseeing Preventive Maintenance (PM) inspections that are due each month throughout various\n        locations in the hospital, in charge of keeping the Supervisor informed on PM statistics, tracking the PM process week by week, and\n        training other techs on PMs.                                              \n        Ability to lift up to 100 lbs and push a cart up to 250 lbs.              \n\n--- Page 2 ---\n                                                                                  \n                                                                                  \n        Ability to stand and walk for hours at time.                              \n                                                                                  \n     Company Name January 2006 to July 2008 Nutrition Clerk                       \n     City , State                                                                 \n        Keep a count of patients' carbs intake throughout the day.                \n        Assist nurses in monitoring patients' daily meals to ensure they do not eat any foods restricted on their diet plan; prep and serve supplement\n        drinks to the patients while providing excellent customer service.        \n                                                                                  \n     Company Name November 2006 to June 2008 Manager/Assistant Service Coordinator\n     City , State                                                                 \n                                                                                  \n        Input, update, upload, and maintain master schedule files for DeVry University Kansas City, MO main campus and other DeVry branches.\n        Utilize Oracle database to schedule courses for the upcoming term and review student academic records to compare grade progression.\n        Provide tutoring for DeVry students, schedule the ESC staff as well as perform clerical chores for the academic and registrar office as\n        needed.                                                                   \n        Managed a staff of 6-8.                                                   \n     Company Name June 2006 to November 2006 Receptionist                         \n     City , State                                                                 \n        Answered phone calls and greeted customers, assisted staff with special projects, alphabetized and filed paperwork.\n        Monitored equivalency tests for new students to access knowledge before they enroll and monitored proficiency tests for current students\n        who want to test out of classes.                                          \n        Cleaned student testing.                                                  \n        area and reception areas; alphabetized student academic files so they could be ready for scanning into the school's electronic records\n        database; received and submitted transcript requests to the Systems Administrator.\n                                                                                  \n     Skills                                                                       \n                                                                                  \n                                                                                  \n                                                                                  \n                                                                                  \n                                                                                  \n                                                                                  \n                                                                                  \n                                                                                  \n                                                                                  \n                                                                                  \n                                                                                  \n                                                                                  \n                                                                                  \n                                                                                  \n                                                                                  \n                                                                                  \n                                                                                  \n                                                                                  \n                                                                                  \n                                                                                  \n                                                                                  \n                                                                                  \n                                                                                  \n                                                                                  \n                                                                                  \n                                                                                  \n                                                                                  \n                                                                                  \n                                                                                  \n                                                                                  \n                                                                                  \n                                                                                  \n                                                                                  \n                                                                                  \n                                                                                  \n                                                                                  ",
+            "timestamp": "2026-06-09T13:40:18.260927Z",
+            "part_kind": "user-prompt"
+          }
+        ],
+        "timestamp": "2026-06-09T13:40:18.260927Z",
+        "instructions": null,
+        "kind": "request",
+        "run_id": "019eac9c-cec9-778d-9ec2-a922a574708c",
+        "conversation_id": "019eac9c-cec9-778d-9ec2-a921cebe0de0",
+        "metadata": null
+      },
+      {
+        "parts": [
+          {
+            "tool_name": "get_automotive_domains",
+            "args": "{}",
+            "tool_call_id": "rTmiaXQXAf3DRj56gdEL1bRnQR5bcjEh",
+            "tool_kind": null,
+            "id": null,
+            "provider_name": null,
+            "provider_details": null,
+            "part_kind": "tool-call"
+          },
+          {
+            "tool_name": "get_jobs_by_domain",
+            "args": "{}",
+            "tool_call_id": "NrMKq0PW0zxLB029gVGaI8ajf1ikJYks",
+            "tool_kind": null,
+            "id": null,
+            "provider_name": null,
+            "provider_details": null,
+            "part_kind": "tool-call"
+          }
+        ],
+        "usage": {
+          "input_tokens": 3211,
+          "cache_write_tokens": 0,
+          "cache_read_tokens": 0,
+          "output_tokens": 33,
+          "input_audio_tokens": 0,
+          "cache_audio_read_tokens": 0,
+          "output_audio_tokens": 0,
+          "details": {}
+        },
+        "model_name": "unsloth/Qwen3.6-35B-A3B-GGUF:Q4_K_M",
+        "timestamp": "2026-06-09T13:40:19.469321Z",
+        "kind": "response",
+        "provider_name": "openai",
+        "provider_url": "https://apphubai.wolke.uni-greifswald.de/v1/",
+        "provider_details": {
+          "finish_reason": "tool_calls",
+          "timestamp": "2026-06-09T13:40:21Z"
+        },
+        "provider_response_id": "chatcmpl-9HNIfxZbCTDufiXWoeotbxgR1d5fchUS",
+        "finish_reason": "tool_call",
+        "run_id": "019eac9c-cec9-778d-9ec2-a922a574708c",
+        "conversation_id": "019eac9c-cec9-778d-9ec2-a921cebe0de0",
+        "metadata": null,
+        "state": "complete"
+      },
+      {
+        "parts": [
+          {
+            "tool_name": "get_automotive_domains",
+            "content": "[\n  {\n    \"name\": \"Vehicle_Tech_and_Software_Defined_Vehicles\",\n    \"description\": \"This domain governs the physical vehicle's computing core, transitioning traditional mechanical cars into Software-Defined Vehicles (SDVs). It encompasses real-time embedded systems programming for Electronic Control Units (ECUs) and microcontroller architectures. Key sub-fields include Advanced Driver Assistance Systems (ADAS) and Autonomous Driving, which rely on AI and Machine Learning for complex tasks like computer vision, path planning, and sensor fusion (LiDAR, radar, cameras). It also includes Hardware-in-the-Loop (HIL) testing to safely validate code against simulated physical hardware, and strict adherence to functional safety standards (ISO 26262). Additionally, it integrates advanced cockpit graphics (such as AR/VR head-up displays and gaming engines for 3D dashboard rendering) and physical assembly automation through robotics engineering on the manufacturing floor.\"\n  },\n  {\n    \"name\": \"Cloud_Data_and_Connected_Car_Infrastructure\",\n    \"description\": \"This domain covers off-board distributed systems, managing the secure digital link between the vehicle fleet and the manufacturer's backend. Sub-fields include cloud architecture (AWS, Azure) and DevOps/SRE practices designed to maintain high availability for millions of concurrent vehicle connections. It handles telemetry data ingestion, processing massive, real-time data streams from car sensors to enable fleet analytics and predictive maintenance. Security is a critical sub-field here, utilizing cybersecurity analysts and ethical hackers to secure vehicle-to-everything (V2X) communications and critical OTA (Over-the-Air) software distribution systems. Additionally, it integrates enterprise software components (Java, .NET, Python), blockchain for supply chain ledger tracking, and fintech systems to handle direct-from-vehicle digital transactions, such as automated tolling and charging payments.\"\n  },\n  {\n    \"name\": \"Digital_Product_Companion_Apps_and_UX_UI_Quality\",\n    \"description\": \"This domain focuses on the digital touchpoints connecting customers with the brand and the overall software quality across web, mobile, and in-car systems. It is led by product and project managers who guide the lifecycle of features from concept to release. UX/UI and Human-Machine Interface (HMI) design are core sub-fields here, ensuring that in-car screens and menus are intuitive and cause minimal driver distraction. Mobile engineering (iOS and Android) is central to building companion apps that allow users to remotely lock, locate, or pre-heat their vehicles. The domain also encompasses rigorous quality assurance, utilizing automated testing, manual QA, and Software Development Engineers in Test (SDET) to systematically verify application performance, user journeys, and technical writing documentation before software is pushed to production.\"\n  },\n  {\n    \"name\": \"Sales_Marketing_and_Commercial_Operations\",\n    \"description\": \"This domain focuses on driving commercial growth, managing customer relationships, and modernizing automotive business models. Key sub-fields include market research and business intelligence, which leverage data analytics to forecast consumer demand and optimize vehicle pricing. It covers both digital and traditional marketing operations (SEO, copywriters, and graphic designers) to build brand awareness for new vehicle launches. Commercial operations handle complex dealer network management systems and fleet sales accounts. Furthermore, as vehicles become more software-driven, this domain manages 'Features-on-Demand' (FoD) and digital subscription services, handling the business strategy, customer billing, and digital storefronts required for post-purchase software upgrades (such as range extension or upgraded navigation packages).\"\n  }\n]",
+            "tool_call_id": "rTmiaXQXAf3DRj56gdEL1bRnQR5bcjEh",
+            "tool_kind": null,
+            "metadata": null,
+            "timestamp": "2026-06-09T13:40:19.474934Z",
+            "outcome": "success",
+            "part_kind": "tool-return"
+          },
+          {
+            "tool_name": "get_jobs_by_domain",
+            "content": "{\n  \"Vehicle_Tech_and_Software_Defined_Vehicles\": {\n    \"systems_engineer\": \"Systems Engineer\",\n    \"robotics_engineer\": \"Robotics Engineer\",\n    \"iot_engineer\": \"IoT Engineer\",\n    \"ar_developer\": \"AR Developer\",\n    \"vr_developer\": \"VR Developer\",\n    \"game_developer\": \"Game Developer\",\n    \"ai_engineer\": \"AI Engineer\",\n    \"machine_learning_engineer\": \"Machine Learning Engineer\",\n    \"embedded_systems_engineer\": \"Embedded Systems Engineer\",\n    \"adas_autonomous_driving_engineer\": \"ADAS / Autonomous Driving Engineer\",\n    \"ecu_software_developer\": \"ECU Software Developer\",\n    \"hil_test_engineer\": \"Hardware-in-the-Loop (HIL) Test Engineer\",\n    \"functional_safety_engineer\": \"Functional Safety Engineer (ISO 26262)\"\n  },\n  \"Cloud_Data_and_Connected_Car_Infrastructure\": {\n    \"software_engineer\": \"Software Engineer\",\n    \"software_developer\": \"Software Developer\",\n    \"backend_developer\": \"Backend Developer\",\n    \"full_stack_developer\": \"Full Stack Developer\",\n    \"python_developer\": \"Python Developer\",\n    \"java_developer\": \"Java Developer\",\n    \"dotnet_developer\": \".NET Developer\",\n    \"devops_engineer\": \"DevOps Engineer\",\n    \"site_reliability_engineer\": \"SRE\",\n    \"cloud_engineer\": \"Cloud Engineer\",\n    \"cloud_architect\": \"Cloud Architect\",\n    \"solutions_architect\": \"Solutions Architect\",\n    \"cybersecurity_analyst\": \"Cybersecurity Analyst\",\n    \"ethical_hacker\": \"Ethical Hacker\",\n    \"network_engineer\": \"Network Engineer\",\n    \"data_engineer\": \"Data Engineer\",\n    \"big_data_specialist\": \"Big Data Specialist\",\n    \"blockchain_developer\": \"Blockchain Developer\",\n    \"fintech_engineer\": \"Fintech Engineer\",\n    \"connected_car_cloud_engineer\": \"Connected Car Cloud Engineer\",\n    \"ota_systems_architect\": \"OTA (Over-the-Air) Systems Architect\"\n  },\n  \"Digital_Product_Companion_Apps_and_UX_UI_Quality\": {\n    \"product_manager\": \"Product Manager\",\n    \"project_manager\": \"Project Manager\",\n    \"business_analyst\": \"Business Analyst\",\n    \"ios_developer\": \"iOS Developer\",\n    \"android_developer\": \"Android Developer\",\n    \"frontend_developer\": \"Frontend Developer\",\n    \"web_developer\": \"Web Developer\",\n    \"javascript_developer\": \"Javascript Developer\",\n    \"ui_designer\": \"UI Designer\",\n    \"ux_designer\": \"UX Designer\",\n    \"product_designer\": \"Product Designer\",\n    \"qa_engineer\": \"QA Engineer\",\n    \"test_automation_engineer\": \"Test Automation Engineer\",\n    \"sdet\": \"SDET\",\n    \"technical_writer\": \"Technical Writer\",\n    \"ai_prompt_engineer\": \"AI Prompt Engineer\",\n    \"in_car_hmi_designer\": \"In-Car HMI (Human-Machine Interface) Designer\",\n    \"mobile_companion_app_product_owner\": \"Mobile Companion App Product Owner\"\n  },\n  \"Sales_Marketing_and_Commercial_Operations\": {\n    \"marketing_specialist\": \"Marketing Specialist\",\n    \"digital_marketing_specialist\": \"Digital Marketing Specialist\",\n    \"seo_specialist\": \"SEO Specialist\",\n    \"content_writer\": \"Content Writer\",\n    \"copywriter\": \"Copywriter\",\n    \"graphic_designer\": \"Graphic Designer\",\n    \"sales_executive\": \"Sales Executive\",\n    \"operations_manager\": \"Operations Manager\",\n    \"market_research_analyst\": \"Market Research Analyst\",\n    \"data_analyst\": \"Data Analyst\",\n    \"business_intelligence_analyst\": \"Business Intelligence Analyst\",\n    \"fleet_sales_executive\": \"Fleet Sales Executive\",\n    \"digital_subscription_manager\": \"Digital Subscription & Feature-on-Demand Manager\"\n  }\n}",
+            "tool_call_id": "NrMKq0PW0zxLB029gVGaI8ajf1ikJYks",
+            "tool_kind": null,
+            "metadata": null,
+            "timestamp": "2026-06-09T13:40:19.474934Z",
+            "outcome": "success",
+            "part_kind": "tool-return"
+          }
+        ],
+        "timestamp": "2026-06-09T13:40:19.474934Z",
+        "instructions": null,
+        "kind": "request",
+        "run_id": "019eac9c-cec9-778d-9ec2-a922a574708c",
+        "conversation_id": "019eac9c-cec9-778d-9ec2-a921cebe0de0",
+        "metadata": null
+      },
+      {
+        "parts": [
+          {
+            "tool_name": "get_job_description",
+            "args": "{\"job_key\":\"embedded_systems_engineer\"}",
+            "tool_call_id": "ehteyqF6wyY9kpSjIjdZCF62zve3hA2n",
+            "tool_kind": null,
+            "id": null,
+            "provider_name": null,
+            "provider_details": null,
+            "part_kind": "tool-call"
+          },
+          {
+            "tool_name": "get_job_description",
+            "args": "{\"job_key\":\"network_engineer\"}",
+            "tool_call_id": "P9UYHYi97xiaegRorsBuXniDYrINjk9l",
+            "tool_kind": null,
+            "id": null,
+            "provider_name": null,
+            "provider_details": null,
+            "part_kind": "tool-call"
+          }
+        ],
+        "usage": {
+          "input_tokens": 4909,
+          "cache_write_tokens": 0,
+          "cache_read_tokens": 0,
+          "output_tokens": 62,
+          "input_audio_tokens": 0,
+          "cache_audio_read_tokens": 0,
+          "output_audio_tokens": 0,
+          "details": {}
+        },
+        "model_name": "unsloth/Qwen3.6-35B-A3B-GGUF:Q4_K_M",
+        "timestamp": "2026-06-09T13:40:25.199607Z",
+        "kind": "response",
+        "provider_name": "openai",
+        "provider_url": "https://apphubai.wolke.uni-greifswald.de/v1/",
+        "provider_details": {
+          "finish_reason": "tool_calls",
+          "timestamp": "2026-06-09T13:40:27Z"
+        },
+        "provider_response_id": "chatcmpl-7qsui2QCB5SmuHZtGmSSCwXbq1IzDQmB",
+        "finish_reason": "tool_call",
+        "run_id": "019eac9c-cec9-778d-9ec2-a922a574708c",
+        "conversation_id": "019eac9c-cec9-778d-9ec2-a921cebe0de0",
+        "metadata": null,
+        "state": "complete"
+      },
+      {
+        "parts": [
+          {
+            "tool_name": "get_job_description",
+            "content": "### Automotive Context and Mission\nWithin the vehicle development ecosystem, the Embedded Systems Engineer focuses on the low-level software and firmware that operates directly on the microcontroller units (MCUs) powering the vehicle's electronic systems. Their mission is to establish the bare-metal software foundations, configure real-time operating systems (RTOS), and build robust physical hardware-to-software interfaces. They write code that runs directly on safety-critical sub-assemblies like the braking controller, airbag module, or power steering unit, prioritizing memory efficiency, execution speed, and absolute deterministic behavior.\n\n### Day-to-Day Activities and Workflow\nThe daily workload of the Embedded Systems Engineer consists of writing highly optimized code to interface directly with microcontroller peripherals. They spend time performing board bring-up on new hardware prototypes, writing and debugging low-level drivers, and setting up interrupts and memory maps. They work closely with hardware designers using oscilloscopes and logic analyzers to isolate physical signal issues from software bugs, and collaborate with application developers to expose clean, safe hardware abstraction layers (HAL).\n\n### Systems, Softwares, and Hardware Interfaces\nThe engineer works in integrated development environments (IDEs) such as IAR Embedded Workbench, Keil MDK, or Eclipse-based MCU vendor tools. They rely on hardware debuggers like Lauterbach TRACE32 for real-time instruction tracing and code profiling. They interact with microcontrollers based on ARM Cortex-M/R or Infineon AURIX TriCore architectures, configuring internal communication channels (SPI, I2C, ADC, PWM) and physical bus controllers (CAN-FD, LIN, Automotive Ethernet).\n\n### Essential Technical Skills and Methodologies\nThis role demands expert-level C and Assembly programming, combined with a deep understanding of computer architecture, registers, memory layouts, and DMA (Direct Memory Access). The engineer must understand real-time scheduling paradigms (rate-monotonic scheduling, priority inversion), MISRA C safety guidelines, and low-level debugging techniques. Knowledge of hardware schematics and the physical principles of electronic components is essential to successfully write stable, close-to-metal code.",
+            "tool_call_id": "ehteyqF6wyY9kpSjIjdZCF62zve3hA2n",
+            "tool_kind": null,
+            "metadata": null,
+            "timestamp": "2026-06-09T13:40:25.218139Z",
+            "outcome": "success",
+            "part_kind": "tool-return"
+          },
+          {
+            "tool_name": "get_job_description",
+            "content": "### Automotive Context and Mission\nThe Network Engineer designs, implements, and maintains the physical and logical communications networks that connect our global corporate offices, remote engineering tracks, physical vehicle dealerships, and massive manufacturing plants. Within our smart factories, they manage the industrial networks (OT) that connect automated assembly line robots and control systems. Their mission is to build highly resilient, low-latency, and secure network environments that keep production lines running without interruption and support continuous, fast data transfer across the global enterprise.\n\n### Day-to-Day Activities and Workflow\nOn a daily basis, the Network Engineer configures and troubleshoots network hardware, including routers, core switches, firewalls, and wireless access points. They design network segmentation schemas to isolate sensitive manufacturing assembly systems from general office networks (managing the IT/OT boundary). They monitor network traffic for bottlenecks, troubleshoot connectivity issues reported by remote locations, manage SD-WAN and VPN connections, and install security patches on physical network infrastructure during scheduled maintenance windows.\n\n### Systems, Softwares, and Hardware Interfaces\nThey configure physical networking devices from vendors such as Cisco (IOS/NX-OS), Juniper (Junos), and Fortinet. They use network monitoring and configuration suites like SolarWinds, Cisco DNA Center, or PRTG, and analyze network traffic using Wireshark. They manage secure remote access networks via VPN tunnels, SD-WAN controllers, and IPsec implementations, and use network automation engines like Ansible and Python to automate routing configuration updates.\n\n### Essential Technical Skills and Methodologies\nDeep knowledge of routing protocols (OSPF, BGP, EIGRP), switching technologies (VLANs, STP, LACP), and network security models (firewall rules, ACLs, IPsec) is required. The engineer must understand industrial Ethernet configurations and protocols (such as PROFINET or EtherNet/IP) common in automated factory environments. Strong analytical skills, network performance diagnostic abilities, and a thorough approach to physical network architecture planning are essential to keep critical systems connected and operational.",
+            "tool_call_id": "P9UYHYi97xiaegRorsBuXniDYrINjk9l",
+            "tool_kind": null,
+            "metadata": null,
+            "timestamp": "2026-06-09T13:40:25.218139Z",
+            "outcome": "success",
+            "part_kind": "tool-return"
+          }
+        ],
+        "timestamp": "2026-06-09T13:40:25.218139Z",
+        "instructions": null,
+        "kind": "request",
+        "run_id": "019eac9c-cec9-778d-9ec2-a922a574708c",
+        "conversation_id": "019eac9c-cec9-778d-9ec2-a921cebe0de0",
+        "metadata": null
+      },
+      {
+        "parts": [
+          {
+            "tool_name": "final_result",
+            "args": "{\"years_of_experience\":16,\"candidate_name\":\"Not Provided\",\"education\":[],\"projects\":[],\"categorized_skills\":{\"embedded_firmware\": [], \"high_level_software\": [], \"vehicle_networks\": [], \"toolchains_and_validation\": [], \"standards_and_compliance\": [], \"cloud_and_telematics\": []}}",
+            "tool_call_id": "uOpqeSmvn0Uw7NjdTkWx1UuFzRekVNej",
+            "tool_kind": null,
+            "id": null,
+            "provider_name": null,
+            "provider_details": null,
+            "part_kind": "tool-call"
+          }
+        ],
+        "usage": {
+          "input_tokens": 5830,
+          "cache_write_tokens": 0,
+          "cache_read_tokens": 4970,
+          "output_tokens": 123,
+          "input_audio_tokens": 0,
+          "cache_audio_read_tokens": 0,
+          "output_audio_tokens": 0,
+          "details": {}
+        },
+        "model_name": "unsloth/Qwen3.6-35B-A3B-GGUF:Q4_K_M",
+        "timestamp": "2026-06-09T13:40:26.266311Z",
+        "kind": "response",
+        "provider_name": "openai",
+        "provider_url": "https://apphubai.wolke.uni-greifswald.de/v1/",
+        "provider_details": {
+          "finish_reason": "tool_calls",
+          "timestamp": "2026-06-09T13:40:28Z"
+        },
+        "provider_response_id": "chatcmpl-AlQycqbKtTtBWUEoGBdy8Uh0pu0TtrCl",
+        "finish_reason": "tool_call",
+        "run_id": "019eac9c-cec9-778d-9ec2-a922a574708c",
+        "conversation_id": "019eac9c-cec9-778d-9ec2-a921cebe0de0",
+        "metadata": null,
+        "state": "complete"
+      },
+      {
+        "parts": [
+          {
+            "tool_name": "final_result",
+            "content": "Final result processed.",
+            "tool_call_id": "uOpqeSmvn0Uw7NjdTkWx1UuFzRekVNej",
+            "tool_kind": null,
+            "metadata": null,
+            "timestamp": "2026-06-09T13:40:26.267311Z",
+            "outcome": "success",
+            "part_kind": "tool-return"
+          }
+        ],
+        "timestamp": "2026-06-09T13:40:26.267311Z",
+        "instructions": null,
+        "kind": "request",
+        "run_id": "019eac9c-cec9-778d-9ec2-a922a574708c",
+        "conversation_id": "019eac9c-cec9-778d-9ec2-a921cebe0de0",
+        "metadata": null
+      }
+    ]
+  }
+]

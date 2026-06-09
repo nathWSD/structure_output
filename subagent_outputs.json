@@ -1,0 +1,179 @@
+{
+  "JD Extraction Demands": {
+    "Machine Learning Engineer": {
+      "job_title": "Machine Learning Engineer",
+      "target_domain": "Vehicle_Tech_and_Software_Defined_Vehicles",
+      "required_toolchains": [
+        "PyTorch",
+        "TensorFlow",
+        "scikit-learn",
+        "OpenCV",
+        "pandas",
+        "MLflow",
+        "Weights & Biases",
+        "Airflow"
+      ],
+      "compliance_and_standards": [],
+      "responsibilities": [
+        "Design, prototype, and improve computer vision and vision-language model systems for item understanding",
+        "Build ML workflows for image quality checks, item recognition, visual matching, attribute extraction, and anomaly detection",
+        "Evaluate model performance beyond simple accuracy, including edge cases, error analysis, confidence thresholds, and production failure modes",
+        "Integrate model outputs into user-facing marketplace features",
+        "Create evaluation pipelines for model quality, confidence scoring, and human review workflows",
+        "Document assumptions, model limitations, risks, and technical tradeoffs"
+      ],
+      "requirements": {
+        "must_have": [
+          "3+ years of experience in Machine Learning",
+          "Strong experience with computer vision, vision-language models, or multimodal machine learning",
+          "Hands-on experience with image modelling tasks: classification, detection, segmentation, OCR, image similarity, embeddings, or visual retrieval",
+          "Strong Python skills and familiarity with ML libraries such as PyTorch, TensorFlow, scikit-learn, OpenCV, or pandas",
+          "Ability to evaluate model performance beyond simple accuracy, including edge cases, error analysis, confidence thresholds, and production failure modes"
+        ],
+        "nice_to_have": [
+          "Experience with VLMs, CLIP-style models, multimodal embeddings, visual question answering, image-text retrieval, or LLM-assisted vision workflows",
+          "Experience building image pipelines for marketplaces, ecommerce, authentication, trust and safety, fraud detection, logistics, fintech, or high-value asset platforms",
+          "Familiarity with model evaluation tooling, annotation workflows, active learning, or human-in-the-loop review systems",
+          "Experience with MLOps tools such as MLflow, Weights & Biases, Airflow, or similar",
+          "Interest in trading cards, sports cards, TCGs, comics, or collector communities",
+          "Bachelor's Degree (preferred)"
+        ]
+      },
+      "salary_range": "$95,000\u2013$135,000 a year",
+      "experience": {
+        "years_of_experience": "3",
+        "experience_level": "Experienced"
+      },
+      "source_url": "null",
+      "location": "\"3820 Cessna Drive, Richmond, BC\"",
+      "job_type": "\"Permanent\"",
+      "workplace_type": "\"Hybrid\""
+    }
+  },
+  "CV Extraction Profiles": {
+    "Nathan Dze Kadisoh": {
+      "candidate_name": "Nathan Dze Kadisoh",
+      "education": [
+        {
+          "degree_level": "Bachelor",
+          "field_of_study": "Technische Informatik",
+          "institution": "Hochschule Bremen",
+          "country": "Germany",
+          "graduation_year": 2025
+        },
+        {
+          "degree_level": "Master",
+          "field_of_study": "Angewandte Data Science und k\u00fcnstliche Intelligenz",
+          "institution": "Hochschule Stralsund",
+          "country": "Germany",
+          "graduation_year": null
+        }
+      ],
+      "years_of_experience": 1.4,
+      "categorized_skills": {
+        "embedded_firmware": [],
+        "high_level_software": [
+          "Python",
+          "TypeScript",
+          "Java",
+          "Spring Boot",
+          "React Native",
+          "JavaScript"
+        ],
+        "vehicle_networks": [],
+        "toolchains_and_validation": [
+          "Agno",
+          "Smolagent",
+          "RAG Frameworks",
+          "LLM APIs"
+        ],
+        "standards_and_compliance": [],
+        "cloud_and_telematics": [
+          "Relational Databases",
+          "Vector Databases"
+        ]
+      },
+      "projects": [
+        {
+          "project_name": "encoway GmbH - KI/Full-Stack Entwicklung (Werkstudent)",
+          "duration_months": 7,
+          "tools_used": [
+            "Python",
+            "TypeScript",
+            "React Native",
+            "Java Spring Boot",
+            "RAG Pipeline",
+            "Agno",
+            "Smolagent",
+            "LLM APIs",
+            "Embedding-Models",
+            "Vector Databases"
+          ],
+          "contribution": "Developed automated PDF analysis modules using OCR and semantic search to reduce manual data entry. Designed and implemented RAG pipelines for internal knowledge retrieval. Trained, evaluated, and integrated AI models for text analysis and cost forecasting. Developed agentic workflows using Agno and Smolagent. Integrated AI functionalities into full-stack software architectures including UI data imports, backend endpoints, and database storage."
+        },
+        {
+          "project_name": "encoway GmbH - Praktikant",
+          "duration_months": 5,
+          "tools_used": [
+            "Python",
+            "Relational Databases",
+            "React"
+          ],
+          "contribution": "Trained and tested text-based NLP models. Developed backend functions for data processing and relational database management. Implemented frontend components to display and utilize AI-assisted features."
+        },
+        {
+          "project_name": "Car-Sharing Websystem (Academic Project)",
+          "duration_months": null,
+          "tools_used": [
+            "Web Technologies",
+            "Backend Development",
+            "Databases"
+          ],
+          "contribution": "Developed a web-based car-sharing system including backend logic, database integration, and user interface."
+        },
+        {
+          "project_name": "Dokumenterkennung (Academic Project)",
+          "duration_months": null,
+          "tools_used": [
+            "Image Segmentation",
+            "OCR"
+          ],
+          "contribution": "Implemented automatic form analysis using segmentation and text recognition techniques."
+        },
+        {
+          "project_name": "Autonomes Fahren (Academic Project)",
+          "duration_months": null,
+          "tools_used": [
+            "Computer Vision",
+            "Robotics"
+          ],
+          "contribution": "Developed traffic sign and speed recognition systems for a robotic vehicle."
+        },
+        {
+          "project_name": "ML-Modellierung (Master Project)",
+          "duration_months": null,
+          "tools_used": [
+            "Tabular Data Analysis",
+            "Feature Selection",
+            "Prediction Models"
+          ],
+          "contribution": "Developed interactive applications for tabular data modeling, including feature selection and predictive analysis."
+        }
+      ]
+    },
+    "Not Provided": {
+      "candidate_name": "Not Provided",
+      "education": [],
+      "years_of_experience": 16.0,
+      "categorized_skills": {
+        "embedded_firmware": [],
+        "high_level_software": [],
+        "vehicle_networks": [],
+        "toolchains_and_validation": [],
+        "standards_and_compliance": [],
+        "cloud_and_telematics": []
+      },
+      "projects": []
+    }
+  }
+}

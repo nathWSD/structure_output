@@ -6,3 +6,4 @@ attachments_data.jsonl
 ssh_access
 gemini_api_access.json
 lm-evaluation-harness
+.env
