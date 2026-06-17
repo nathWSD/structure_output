@@ -7,3 +7,6 @@ ssh_access
 gemini_api_access.json
 lm-evaluation-harness
 .env
+cv
+__pycache__
+.deepeval

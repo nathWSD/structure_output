@@ -117,20 +117,19 @@ def render_results_section(result, messages, is_hr_mode=False):
         st.info(result.conversational_reply)
         
         if result.ranked_results:
-            st.markdown("### 🏆 Leaderboard")
+            st.markdown("### Leaderboard")
             
             # Construct a rich metadata table without score columns
             table_data = []
             for item in result.ranked_results:
                 table_data.append({
-                    "Rank": f"#{item.rank}",
                     "Position / Candidate": item.target_name,
                     "Company / Current Role": item.target_context,
                     "Location": getattr(item, "location", "Not Specified") or "Not Specified",
                     "Salary Range": getattr(item, "salary", "Not Specified") or "Not Specified",
                     "Job Type": getattr(item, "job_type", "Not Specified") or "Not Specified",
                     "Workplace Style": getattr(item, "workplace_type", "Not Specified") or "Not Specified",
-                    "URL": getattr(item, "source_url", "") or ""
+                    "URL": getattr(item, "source_url", "Not Specified") or "Not Specified"
                 })
             
             # Display rich leaderboard with clickable LinkColumn for the URL
@@ -144,7 +143,7 @@ def render_results_section(result, messages, is_hr_mode=False):
             )
             
             # ── 📊 COMPATIBILITY VISUAL COMPARISON PLOTS (RADAR / SPIDER CHARTS) ──────
-            st.markdown("### 📊 Attribute Coverage Analytics")
+            st.markdown("### Attribute Coverage Analytics")
             
             label_mapping = {
                 "must_have": "Must-Haves",
@@ -283,21 +282,21 @@ def render_results_section(result, messages, is_hr_mode=False):
                     st.warning("Please run `pip install plotly` to enable radar visualizations.")
             # ────────────────────────────────────────────────────────────────────────
             
-            st.markdown("### 🔍 Detail Analysis per Evaluation Point")
+            st.markdown("### Detail Analysis per Evaluation Point")
             for item in result.ranked_results:
-                with st.expander(f"Rank #{item.rank}: {item.target_name} ({item.target_context})"):
+                with st.expander(f"{item.target_name}: ({item.target_context})"):
                     st.write(f"**Context:** {item.target_context}")
                     
                     # Display metadata summary cards inside the expander
                     metadata_cols = st.columns(4)
                     with metadata_cols[0]:
-                        st.write(f"**📍 Location:** {getattr(item, 'location', 'N/A') or 'N/A'}")
+                        st.write(f"** Location:** {getattr(item, 'location', 'N/A') or 'N/A'}")
                     with metadata_cols[1]:
                         st.write(f"**💼 Workplace:** {getattr(item, 'workplace_type', 'N/A') or 'N/A'}")
                     with metadata_cols[2]:
-                        st.write(f"**🕒 Job Type:** {getattr(item, 'job_type', 'N/A') or 'N/A'}")
+                        st.write(f"** Job Type:** {getattr(item, 'job_type', 'N/A') or 'N/A'}")
                     with metadata_cols[3]:
-                        st.write(f"**💰 Salary:** {getattr(item, 'salary', 'N/A') or 'N/A'}")
+                        st.write(f"** Salary:** {getattr(item, 'salary', 'N/A') or 'N/A'}")
                     
                     sub1, sub2 = st.columns(2)
                     with sub1:
@@ -309,7 +308,7 @@ def render_results_section(result, messages, is_hr_mode=False):
                     st.write(item.executive_summary)
         
         if result.recommended_next_steps:
-            st.markdown("### 📋 Recommended Next Steps")
+            st.markdown("### Recommended Next Steps")
             for step in result.recommended_next_steps:
                 st.markdown(f"- {step}")
 
@@ -318,9 +317,9 @@ def render_results_section(result, messages, is_hr_mode=False):
         
         # Configure segmented logging tabs for unified transparency
         log_tab_orch, log_tab_sub, log_tab_outputs = st.tabs([
-            "💬 Orchestrator", 
-            "⚡ Sub-agents Trace", 
-            "📦 Structured Artifacts"
+            " Orchestrator", 
+            " Sub-agents Trace", 
+            " Structured Artifacts"
         ])
         
         # TAB 1: Main Orchestrator Steps
@@ -356,8 +355,8 @@ def render_results_section(result, messages, is_hr_mode=False):
                                 except Exception:
                                     args_dict = {"raw": str(raw_args)}
 
-                            with st.expander(f"**Step {step}** 🔧 `{tool_name}`", expanded=False):
-                                st.markdown("**📥 Arguments:**")
+                            with st.expander(f"**Step {step}**  `{tool_name}`", expanded=False):
+                                st.markdown("** Arguments:**")
                                 st.json(args_dict)
 
                         elif cls == "ToolReturnPart":
@@ -377,18 +376,18 @@ def render_results_section(result, messages, is_hr_mode=False):
                                 truncated = True
 
                             with st.expander(f"↳  `{tool_name}` — return", expanded=False):
-                                st.markdown("**📤 Return value:**")
+                                st.markdown("** Return value:**")
                                 if is_json:
                                     st.json(json.loads(display_content) if not truncated else display_content)
                                 else:
                                     st.code(display_content, language="json")
                                 if truncated:
-                                    st.caption("⚠️ Output truncated to 1500 chars for display.")
+                                    st.caption(" Output truncated to 1500 chars for display.")
 
                         elif cls == "TextPart":
                             text = getattr(part, "content", "")
                             if text.strip():
-                                with st.expander("💬 Agent reasoning", expanded=False):
+                                with st.expander(" Agent reasoning", expanded=False):
                                     st.markdown(text)
 
         # TAB 2: Sub-Agent Interactive Log Trace
@@ -405,7 +404,7 @@ def render_results_section(result, messages, is_hr_mode=False):
                         sub_name = trace_record.get("subagent", "Unknown Sub-agent")
                         sub_messages = trace_record.get("messages", [])
                         
-                        with st.expander(f"⚙️ [{idx+1}] {sub_name}", expanded=False):
+                        with st.expander(f" [{idx+1}] {sub_name}", expanded=False):
                             step_idx = 0
                             for m in sub_messages:
                                 parts = m.get("parts", [])
@@ -415,7 +414,7 @@ def render_results_section(result, messages, is_hr_mode=False):
                                     # Sub-Agent Tool Executions
                                     if "tool-call" in kind or "ToolCall" in kind or p.get("tool_name"):
                                         step_idx += 1
-                                        st.markdown(f"**Step {step_idx}** 🛠️ `{p.get('tool_name')}`")
+                                        st.markdown(f"**Step {step_idx}**  `{p.get('tool_name')}`")
                                         st.json(p.get("args", {}))
                                         
                                     # Sub-Agent Tool Returns
@@ -431,7 +430,7 @@ def render_results_section(result, messages, is_hr_mode=False):
                                     elif "text" in kind or "Text" in kind or p.get("content"):
                                         reasoning = p.get("content", "")
                                         if reasoning.strip():
-                                            st.caption("💭 Sub-agent thought reasoning:")
+                                            st.caption(" Sub-agent thought reasoning:")
                                             st.markdown(reasoning)
                 except Exception as telemetry_err:
                     st.error(f"Failed to load sub-agent telemetry: {str(telemetry_err)}")
@@ -446,9 +445,9 @@ def render_results_section(result, messages, is_hr_mode=False):
                         outputs_payloads = json.load(f)
                     
                     for subagent_group, items in outputs_payloads.items():
-                        st.markdown(f"#### 📁 {subagent_group}")
+                        st.markdown(f"####  {subagent_group}")
                         for item_key, payload_body in items.items():
-                            with st.expander(f"📦 {item_key}", expanded=False):
+                            with st.expander(f" {item_key}", expanded=False):
                                 st.json(payload_body)
                 except Exception as outputs_err:
                     st.error(f"Failed to load structured outputs: {str(outputs_err)}")
@@ -470,13 +469,13 @@ def render_results_section(result, messages, is_hr_mode=False):
 # ==========================================
 # 4. MAIN WORKSPACE / TABS
 # ==========================================
-st.title("🚗 Automotive Agentic Matching Portal")
+st.title(" Agentic Matching Portal")
 
 if not AGENT_AVAILABLE:
     st.warning("Please ensure your `mcp_server.py`, `orchestrator.py`, and schemas are accessible.")
     st.stop()
 
-# Tab setup: Strictly keeping seeker and recruiter modes as requested
+# Tab setup: Keeping seeker and recruiter modes isolated
 tab_seeker, tab_hr = st.tabs([
     " Job Seeker Mode", 
     " HR Recruiter Mode"
@@ -492,6 +491,12 @@ with tab_seeker:
             st.markdown("#### Upload CV (PDF)")
             uploaded_cv = st.file_uploader("Select CV File:", type=["pdf"], key="seeker_cv_upload")
             search_keywords = st.text_input("Job Title / Target Keywords:", value="Automotive Software Engineer", key="seeker_keywords")
+            
+            # --- Added Input Parameters ---
+            location_filter = st.text_input("Location Filter:", value="Munich / Remote", key="seeker_location")
+            max_jobs = st.number_input("Max Jobs to Search / Match:", min_value=1, max_value=20, value=5, step=1, key="seeker_max_jobs")
+            # ------------------------------
+            
             search_constraints = st.text_area("Optional Details to Search:", value="", placeholder="e.g. 'Must focus on ISO 26262'", height=100, key="seeker_constraints")
             trigger_seeker = st.button(" Find & Match Jobs", type="primary", use_container_width=True, key="seeker_trigger")
 
@@ -557,7 +562,7 @@ with tab_hr:
             uploaded_cvs = st.file_uploader("Upload CVs (PDF):", type=["pdf"], accept_multiple_files=True, key="hr_cv_upload")
             
     st.divider()
-    trigger_hr = st.button("⚖️ Run Comparative Engine", type="primary", use_container_width=True, key="hr_trigger")
+    trigger_hr = st.button(" Run Comparative Engine", type="primary", use_container_width=True, key="hr_trigger")
     
     if trigger_hr:
         if not uploaded_cvs:
