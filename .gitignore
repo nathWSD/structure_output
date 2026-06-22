@@ -10,3 +10,8 @@ lm-evaluation-harness
 cv
 __pycache__
 .deepeval
+mlartifacts
+mcp_state_registry.pkl
+mcp_subagents.log
+subagent_outputs.json
+subagent_trace.json

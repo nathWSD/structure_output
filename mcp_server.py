@@ -20,6 +20,8 @@ from fastmcp import FastMCP
 import uuid
 import requests
 from bs4 import BeautifulSoup
+import mlflow
+import pickle
 import pdfplumber
 from dotenv import load_dotenv
 
@@ -39,7 +41,9 @@ from pydantic_ai.usage import UsageLimits
 from pydantic_ai.messages import ModelRequest, ModelResponse, ToolCallPart, ToolReturnPart
 
 from prompts import (
-    AGENT_PROMPT,
+    CV_AGENT_PROMPT,
+    JD_AGENT_PROMPT,
+    MATCHER_AGENT_PROMPT,
     CV_PROMPT,
     JOB_DESCRIPTION_PROMPT,
     MATCHER_PROMPT
@@ -63,6 +67,7 @@ mcp = FastMCP(
     version="1.0.0",
 )
 load_dotenv()
+
 
 # Detect the directory of the current script to locate the JSON files reliably
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -206,14 +211,39 @@ sub_agent_settings = settings
 
 class MCPEnvironment:
     """
-    A stateful, in-memory universal environment. 
-    Maintains a pass-by-reference registry of heavy payloads during the execution session.
+    A stateful, file-backed universal environment. 
+    Maintains a pass-by-reference registry of heavy payloads across subprocess lifecycles.
     """
-    def __init__(self):
-        self._registry: Dict[str, Dict[str, Any]] = {}
+    def __init__(self, filename: str = "mcp_state_registry.pkl"):
+        self._filename = filename
+        # Ensure the registry starts with the persisted disk state
+        self._registry: Dict[str, Dict[str, Any]] = self._load_from_disk()
+
+    def _load_from_disk(self) -> Dict[str, Dict[str, Any]]:
+        """Loads the registry from a local pickle file if it exists."""
+        if os.path.exists(self._filename):
+            try:
+                with open(self._filename, "rb") as f:
+                    return pickle.load(f)
+            except Exception as e:
+                # Fallback to empty state if file is unreadable or corrupted
+                print(f"Warning: Failed to load MCP environment registry: {e}")
+                return {}
+        return {}
+
+    def _save_to_disk(self):
+        """Saves the current registry state to the local pickle file."""
+        try:
+            with open(self._filename, "wb") as f:
+                pickle.dump(self._registry, f)
+        except Exception as e:
+            print(f"Failed to write to MCP environment registry: {e}")
 
     def write(self, data_type: str, payload: Any, summary: str, size_indicator: str) -> ReferenceHandle:
-        """Stores a payload in the environment and returns a tracking ReferenceHandle."""
+        """Stores a payload in the environment and persists it to disk."""
+        # Sync current state in case another process wrote to it
+        self._registry = self._load_from_disk()
+        
         ref_id = f"ref_{data_type}_{str(uuid.uuid4())[:8]}"
         self._registry[ref_id] = {
             "payload": payload,
@@ -221,6 +251,10 @@ class MCPEnvironment:
             "summary": summary,
             "size_indicator": size_indicator
         }
+        
+        # Save state changes
+        self._save_to_disk()
+        
         return ReferenceHandle(
             ref_id=ref_id,
             data_type=data_type,
@@ -229,13 +263,17 @@ class MCPEnvironment:
         )
 
     def read(self, ref_id: str) -> Any:
-        """Retrieves a payload from the environment by its reference ID."""
+        """Retrieves a payload from the disk-backed environment by its reference ID."""
+        # Always read fresh from disk to ensure cross-process alignment
+        self._registry = self._load_from_disk()
+        
         if ref_id not in self._registry:
             raise ValueError(f"Reference ID '{ref_id}' does not exist in the active environment.")
         return self._registry[ref_id]["payload"]
 
     def list_objects(self) -> Dict[str, Dict[str, str]]:
         """Returns metadata of all objects currently registered in the environment."""
+        self._registry = self._load_from_disk()
         return {
             ref_id: {
                 "data_type": obj["data_type"],
@@ -246,8 +284,14 @@ class MCPEnvironment:
         }
 
     def clear(self):
-        """Purges the environment memory."""
+        """Purges the environment memory and cleans up the local file."""
         self._registry.clear()
+        self._save_to_disk()
+        if os.path.exists(self._filename):
+            try:
+                os.remove(self._filename)
+            except Exception as e:
+                print(f"Failed to delete registry file: {e}")
 
 # Initialize the global environment instance
 env = MCPEnvironment()
@@ -302,45 +346,46 @@ def load_json_file(file_path: str) -> Dict[str, Any]:
 # =====================================================================
 
 @mcp.resource("automotive://domains")
-def get_automotive_domains() -> str:
+def get_automotive_domains() -> ReferenceHandle:
     """
-    Retrieve the main automotive role domains and their high-level descriptions.
-    
-    This resource serves as the structural entry point for understanding 
-    how the enterprise categorizes its technical and commercial operations.
+    Retrieve the main automotive role domains and their descriptions,
+    registers them in the environment, and returns a ReferenceHandle.
     """
     try:
         data = load_json_file(DOMAINS_FILE_PATH)
         domains = data.get("automotive_role_domains", [])
-        return json.dumps(domains, indent=2)
-    except FileNotFoundError:
-        return json.dumps({"error": "job_main_domains.json could not be located on the server path."}, indent=2)
+        return env.write(
+            data_type="taxonomy_domains",
+            payload=domains,
+            summary="Automotive role domains and technical descriptions.",
+            size_indicator=f"{len(domains)} domains registered"
+        )
     except Exception as e:
-        return json.dumps({"error": f"An unexpected error occurred: {str(e)}"}, indent=2)
+        raise RuntimeError(f"Failed to fetch domains: {str(e)}")
 
 
 @mcp.resource("automotive://jobs-by-domain")
-def get_jobs_by_domain() -> str:
+def get_jobs_by_domain() -> ReferenceHandle:
     """
-    Retrieve the map of structural job keys to their human-readable titles, 
-    grouped by their respective role domains.
-    
-    This is highly useful for mapping specific developers or specialists 
-    back to their functional automotive department.
+    Retrieve the mapping of job keys to role domains,
+    registers them in the environment, and returns a ReferenceHandle.
     """
     try:
         data = load_json_file(DOMAINS_FILE_PATH)
         jobs_mapping = data.get("jobs_per_role_domain", {})
-        return json.dumps(jobs_mapping, indent=2)
-    except FileNotFoundError:
-        return json.dumps({"error": "job_main_domains.json could not be located on the server path."}, indent=2)
+        return env.write(
+            data_type="taxonomy_jobs_mapping",
+            payload=jobs_mapping,
+            summary="Corporate job-to-domain mapping taxonomy.",
+            size_indicator=f"{len(jobs_mapping)} domains mapped"
+        )
     except Exception as e:
-        return json.dumps({"error": f"An unexpected error occurred: {str(e)}"}, indent=2)
+        raise RuntimeError(f"Failed to fetch job mappings: {str(e)}")
 
 @mcp.resource("matcher://scoring-framework")
 def get_scoring_framework() -> str:
     """
-    Returns the official scoring hierarchy used by the matcher agent.
+    Returns the official scoring hierarchy registered in the environment.
 
     This resource defines:
     - All scoring categories (must-have, experience, domain, toolchain, etc.)
@@ -348,46 +393,53 @@ def get_scoring_framework() -> str:
     - The meaning and purpose of each category
     - The evaluation criteria the agent MUST follow when assigning points
 
-    The matcher agent MUST fetch this resource before scoring a candidate.
     """
-    return SCORING_HIERARCHY.model_dump_json(indent=2)
-
+    payload = SCORING_HIERARCHY.model_dump_json(indent=2)
+    return env.write(
+        data_type="scoring_framework",
+        payload=payload,
+        summary="Official weighted scoring framework guidelines.",
+        size_indicator=f"{len(payload)} characters"
+    )
 
 # =====================================================================
 # TOOLS
 # =====================================================================
 
-@mcp.tool()
-def get_job_description(job_key: str) -> str:
+#@mcp.tool()
+def get_job_description(job_key: str) -> ReferenceHandle:
     """
-    Fetch the detailed activities, tools, hardware interfaces, and required 
-    skills for a specific job key.
+    Fetches job details for a pre-registered, static internal company taxonomy job key (e.g., 'systems_engineer').
+    DO NOT call this for external URLs, website links, or scraped job descriptions. This is strictly for internal company taxonomy lookup keys.
     
     Args:
-        job_key (str): The specific identifier of the job (e.g., 'digital_subscription_manager', 'systems_engineer').
+        job_key (str): The specific identifier of the job (e.g., 'systems_engineer').
     """
     try:
         details = load_json_file(DETAILS_FILE_PATH)
-        
-        # Check if the requested key exists
         if job_key in details:
-            return details[job_key]
+            payload = details[job_key]
+            return env.write(
+                data_type="job_description_context",
+                payload=payload,
+                summary=f"Automotive JD taxonomy context for: '{job_key}'",
+                size_indicator=f"{len(payload)} characters"
+            )
         
-        # Fallback helper if the exact key was not found
+        # Simple fallback for search suggestions
         similar_keys = [k for k in details.keys() if job_key.lower() in k.lower()]
         suggestions = f" Did you mean: {', '.join(similar_keys)}?" if similar_keys else ""
-        return f"Error: Job key '{job_key}' not found.{suggestions}"
+        raise ValueError(f"Job key '{job_key}' not found.{suggestions}")
         
-    except FileNotFoundError:
-        return "Error: The detailed job registry file 'jobs_details.json' could not be found."
     except Exception as e:
-        return f"An error occurred while fetching the description: {str(e)}"
+        raise RuntimeError(f"Failed to fetch job description: {str(e)}")
+    
 
 @mcp.tool()
 def register_raw_jd_text(jd_text: str) -> ReferenceHandle:
     """
-    Registers a raw pasted job description string into the active environment
-    so it can be retrieved by structured extraction sub-agents.
+    Registers a raw pasted descriptive text block of a job description into the active environment.
+    DO NOT call this if the input is a URL or a website link. This is strictly for raw text blocks.
     """
     sys.stderr.write(" -> [TOOL] Registering raw pasted JD text in environment\n")
     sys.stderr.flush()
@@ -404,8 +456,8 @@ def register_raw_jd_text(jd_text: str) -> ReferenceHandle:
 @mcp.tool()
 def scrape_job_description_url(url: str) -> ReferenceHandle:
     """
-    Crawls a job description webpage from a given URL (e.g., JobBank, LinkedIn, etc.),
-    extracts its full page text and title, and registers it into the universal environment.
+    Crawls an external job description webpage from a given URL link starting with http/https.
+    Use this tool immediately if there is a website link representing the job description.
     
     Returns a ReferenceHandle pointer to a single-item scraped_jobs_list.
     """
@@ -482,172 +534,294 @@ def scrape_pdf_content(pdf_path: str) -> ReferenceHandle:
     except Exception as e:
         raise RuntimeError(f"Error reading PDF: {str(e)}")
 
+#@mcp.tool(timeout=720.0) 
+async def tool_extract_cv_profile_by_reference(
+    pdf_text_ref_id: str, 
+    scenario: str,
+    context_ref_id: str = None
+) -> CVExtractionOutput:
+    """
+    Executes CV extraction using a single-turn structured LLM call. 
+    Reads raw CV text and alignment context directly from the state environment.
+    
+    Args:
+        pdf_text_ref_id: Environment reference pointer to the raw CV text.
+        scenario: Operational scenario ('A' or 'B').
+        context_ref_id: Optional reference pointer to company-specific taxonomy.
+    """
+    raw_cv_text = env.read(pdf_text_ref_id)
+    company_alignment_context = env.read(context_ref_id) if context_ref_id else ""
+    
+    system_prompt = (
+        f"{CV_PROMPT}\n\n"
+        f"--- ACTIVE SCENARIO: Scenario {scenario} ---\n"
+        f"--- AUDIT TAXONOMY AND SYSTEM GUIDELINES ---\n"
+        f"{company_alignment_context}\n"
+        f"--------------------------------------------"
+    )
+    
+    extractor = Agent(
+        sub_agent_model,
+        model_settings=sub_agent_settings,
+        system_prompt=system_prompt,
+        output_type=CVExtractionOutput,
+    )
+    
+    result = await extractor.run(
+        f"Please extract and structure the candidate profile from this raw text [Scenario {scenario}]:\n\n{raw_cv_text}"
+    )
+    structured_output = result.output
+
+    # Write structured output directly to the state registry from inside the tool
+    ref = env.write(
+        data_type="structured_cv",
+        payload=structured_output,
+        summary=f"Structured CV Profile for candidate: {structured_output.candidate_name} [Scenario {scenario}]",
+        size_indicator=f"{len(structured_output.projects)} projects, {structured_output.years_of_experience} years exp"
+    )
+    return ref
+
+#@mcp.tool(timeout=720.0)  
+async def tool_extract_jd_demands_by_reference(
+    jobs_list_ref_id: str, 
+    index: int = 0,
+    scenario: str = "B",
+    context_ref_id: str = None
+) -> JDExtractionOutput:
+    """
+    Executes JD requirements extraction using a single-turn structured LLM call.
+    Reads raw job listings and alignment context directly from the state environment.
+    
+    Args:
+        jobs_list_ref_id: Environment reference pointer to raw job listings.
+        index: Index of the job to process in the list.
+        scenario: Operational scenario ('A' or 'B').
+        context_ref_id: Optional reference pointer to company-specific taxonomy.
+    """
+    payload = env.read(jobs_list_ref_id)
+    company_alignment_context = env.read(context_ref_id) if context_ref_id else ""
+    
+    # Resolve index payload
+    if isinstance(payload, str):
+        description = payload
+    elif isinstance(payload, list):
+        item = payload[index]
+        description = item.get("description") if isinstance(item, dict) else str(item)
+    elif isinstance(payload, dict):
+        description = payload.get("description", str(payload))
+    else:
+        description = str(payload)
+
+    system_prompt = (
+        f"{JOB_DESCRIPTION_PROMPT}\n\n"
+        f"--- ACTIVE SCENARIO: Scenario {scenario} ---\n"
+        f"--- CORPORATE TAXONOMY ALIGNMENT CONTEXT ---\n"
+        f"{company_alignment_context}\n"
+        f"--------------------------------------------"
+    )
+
+    extractor = Agent(
+        sub_agent_model,
+        model_settings=sub_agent_settings,
+        system_prompt=system_prompt,
+        output_type=JDExtractionOutput,
+    )
+    
+    result = await extractor.run(
+        f"Structure the requirements for this job posting [Scenario {scenario}]:\n{description}"
+    )
+    structured_output = result.output
+
+    ref = env.write(
+        data_type="structured_jd",
+        payload=structured_output,
+        summary=f"Structured requirements for position: '{structured_output.job_title}' [Scenario {scenario}]",
+        size_indicator=f"{len(structured_output.requirements.must_have)} must-have requirements"
+    )
+    return ref
+
+#@mcp.tool(timeout=720.0)
+async def tool_execute_matching_evaluation_by_reference(
+    cv_data_ref_id: str, 
+    jd_data_ref_id: str, 
+    scenario: str,
+    context_ref_id: str = None
+) -> MatchOutput:
+    """
+    Executes a matching evaluation using structured data references and scenario constraints.
+    
+    Args:
+        cv_data_ref_id: Reference pointing to structured CVExtractionOutput.
+        jd_data_ref_id: Reference pointing to structured JDExtractionOutput.
+        scenario: Operational scenario ('A' or 'B').
+        context_ref_id: Reference pointer to scoring frameworks.
+    """
+    cv_data = env.read(cv_data_ref_id)
+    jd_data = env.read(jd_data_ref_id)
+    scoring_framework_context = env.read(context_ref_id) if context_ref_id else SCORING_HIERARCHY.model_dump_json(indent=2)
+    
+    system_prompt = (
+        f"{MATCHER_PROMPT}\n\n"
+        f"--- ACTIVE SCENARIO: Scenario {scenario} ---\n"
+        f"--- SCORING METRIC SYSTEMS AND RULES ---\n"
+        f"{scoring_framework_context}\n"
+        f"----------------------------------------"
+    )
+    
+    matcher = Agent(
+        sub_agent_model,
+        model_settings=sub_agent_settings,
+        system_prompt=system_prompt,
+        output_type=MatchOutput,
+    )
+    
+    payload = {
+        "cv_details": cv_data.model_dump() if hasattr(cv_data, "model_dump") else cv_data,
+        "jd_requirements": jd_data.model_dump() if hasattr(jd_data, "model_dump") else jd_data
+    }
+    
+    result = await matcher.run(
+        f"Perform matching evaluation on these parameters [Scenario {scenario}]:\n{json.dumps(payload, indent=2)}"
+    )
+
+    structured_output = result.output
+
+    ref = env.write(
+        data_type="match_report",
+        payload=structured_output,
+        summary=f"Detailed candidate-to-role alignment report for {cv_data_ref_id} -> {jd_data_ref_id} [Scenario {scenario}].",
+        size_indicator="Category-based breakdown analysis"
+    )
+    return ref
+
 
 @mcp.tool(timeout=720.0)  # Extended timeout for slow LLM calls during extraction
-async def run_cv_extraction_agent(pdf_text_ref_id: str) -> ReferenceHandle:
+async def run_cv_extraction_agent(pdf_text_ref_id: str, scenario: str) -> ReferenceHandle:
     """
     Spawns the CV Extraction Sub-Agent on a raw text reference stored in the environment.
     Saves the structured CVExtractionOutput back to the environment.
     
     Args:
         pdf_text_ref_id (str): The reference pointer to the raw PDF text (e.g., 'ref_raw_pdf_text_a37f').
+        scenario: A or B referencing the scenario to be analysed
     """
     sys.stderr.write(f" -> [SUB-AGENT] Executing CV extraction on reference: {pdf_text_ref_id}\n")
     sys.stderr.flush()
+    with mlflow.start_span(name="SubAgent_CV_Evaluation", span_type="agent") as span:
+        span.set_inputs({
+            "pdf_text_ref_id": pdf_text_ref_id,
+            "scenario": scenario
+        })
 
-    # 1. Read the heavy raw text directly from the environment
-    raw_cv_text = env.read(pdf_text_ref_id)
-    
-    # We still need to pass a dummy deps object to satisfy Pydantic AI's signature requirements
-    inputs = CVRawDataInput(pdf_path=f"Environment Reference: {pdf_text_ref_id}")
-    
-    prompt = f"Please extract and structure the candidate profile from this raw text:\n\n{raw_cv_text}"
-    
-    # 2. Run the sub-agent
-    result = await cv_extraction_subagent.run(
-        prompt,
-        deps=inputs,
-        usage_limits=UsageLimits(request_limit=5)
-    )
-    append_subagent_trace("CV Extraction Agent", result.all_messages())
-    save_subagent_final_output("CV Extraction Profiles", result.output.candidate_name, result.output.model_dump())
-    # 3. Write the structured schema output to the environment and return a clean pointer
-    structured_ref = env.write(
-        data_type="structured_cv",
-        payload=result.output,  # Store the Pydantic CVExtractionOutput object
-        summary=f"Structured CV Profile for candidate: {result.output.candidate_name}",
-        size_indicator=f"{len(result.output.projects)} projects, {result.output.years_of_experience} years exp"
-    )
-    return structured_ref
+        inputs = CVRawDataInput(
+            pdf_path=f"Environment Reference: {pdf_text_ref_id}",
+            scenario = scenario
+        )
+
+        prompt = f"Coordinate CV extraction on reference: {pdf_text_ref_id} under Scenario: {scenario}"
+        result = await cv_extraction_subagent.run(prompt, deps=inputs)
+
+        # Save telemetries
+        append_subagent_trace(f"CV Extraction Coordinator ({scenario})", result.all_messages())
+
+        try:
+            ref_handle = result.output
+            structured_data = env.read(ref_handle.ref_id)  # Read actual CVExtractionOutput
+            save_subagent_final_output(
+                "CV Extraction Profiles", 
+                structured_data.candidate_name or f"Candidate_{ref_handle.ref_id[-4:]}", 
+                structured_data.model_dump() if hasattr(structured_data, "model_dump") else structured_data
+            )
+        except Exception as e:
+            sys.stderr.write(f" -> [TELEMETRY ERROR] CV Output save failed: {str(e)}\n")
+            sys.stderr.flush()
+
+        # Returning the final ReferenceHandle produced by the agent
+        return result.output
 
 
-@mcp.tool(timeout=720.0)  # Extended timeout for slow LLM calls during extraction
-async def run_jd_extraction_agent(jobs_list_ref_id: str, index: int) -> ReferenceHandle:
+
+@mcp.tool(timeout=720.0)  
+async def run_jd_extraction_agent(jobs_list_ref_id: str, index: int, scenario: str) -> ReferenceHandle:
     """
     Extracts a specific job from a scraped job list reference and structures its requirements.
     Saves the JDExtractionOutput back to the environment.
+    
+    Args:
+        jobs_list_ref_id: Pointer reference to raw job listings.
+        index: Index of target job.
+        scenario: Operational scenario ('A' or 'B').
     """
-    # 1. Read the payload from our environment using the reference
-    payload = env.read(jobs_list_ref_id)
-    
-    # Normalize payload into a dictionary representing the target job
-    if isinstance(payload, str):
-        # Case A: The payload is a raw pasted JD string (HR Recruiter Mode)
-        target_job = {
-            "title": "Pasted Position",
-            "company": "Direct Input",
-            "location": "Direct Input",
-            "description": payload,
-            "url": "Direct Input"
-        }
-    elif isinstance(payload, dict):
-        # Case B: The payload is already a single job dictionary
-        target_job = payload
-    elif isinstance(payload, list):
-        # Case C: The payload is a list (Job Seeker / Scraped Mode)
-        if index < 0 or index >= len(payload):
-            raise IndexError(f"Index {index} out of bounds for job list size {len(payload)}")
-        target_item = payload[index]
-        
-        if isinstance(target_item, str):
-            target_job = {
-                "title": "Pasted Position",
-                "company": "Direct Input",
-                "location": "Direct Input",
-                "description": target_item,
-                "url": "Direct Input"
-            }
-        else:
-            target_job = target_item
-    else:
-        raise ValueError(f"Unsupported payload type in reference {jobs_list_ref_id}: {type(payload)}")
-        
-    # Safeguard: Convert None values to strings safely
-    title = target_job.get("title") or "Unknown"
-    company = target_job.get("company") or "Unknown"
-    location = target_job.get("location") or "Unknown"
-    description = target_job.get("description") or ""
-    url = target_job.get("url") or ""
-
-    # FAST-FAIL GUARD: If description is empty, do not run the sub-agent!
-    if not description.strip() or len(description.strip()) < 50:
-        raise ValueError(
-            f"The description for '{title}' is empty or too short. "
-            "The extraction sub-agent cannot proceed."
-        )
-        
-    # Build JDRawDataInput safely
-    job_data = JDRawDataInput(
-        title=title,
-        company=company,
-        location=location,
-        description=description,
-        url=url
-    )
-    
-    sys.stderr.write(f" -> [SUB-AGENT] Parsing cached job: {job_data.title}\n")
+    sys.stderr.write(f" -> [SUB-AGENT] Executing JD extraction on ref: {jobs_list_ref_id} index: {index} [Scenario: {scenario}]\n")
     sys.stderr.flush()
-    
-    prompt = f"Structure the requirements for this job posting:\n{job_data.description}"
-    
-    # 2. Run the sub-agent
-    result = await jd_extraction_subagent.run(prompt, deps=job_data)
+        # Use mlflow.start_span to log this sub-agent execution
+    with mlflow.start_span(name=f"SubAgent_JD_Extraction_Idx_{index}", span_type="agent") as span:
+        span.set_inputs({
+            "jobs_list_ref_id": jobs_list_ref_id,
+            "index": index,
+            "scenario": scenario
+        })
+        prompt = f"Coordinate JD extraction on reference: {jobs_list_ref_id} index: {index} under Scenario: {scenario}"
+        result = await jd_extraction_subagent.run(prompt)
 
-    append_subagent_trace(f"JD Extraction Agent ({result.output.job_title})", result.all_messages())
-    save_subagent_final_output("JD Extraction Demands", result.output.job_title, result.output.model_dump())
+        append_subagent_trace(f"JD Extraction Coordinator ({scenario})", result.all_messages())
 
-    # 3. Write output to environment and return a reference pointer
-    jd_ref = env.write(
-        data_type="structured_jd",
-        payload=result.output, # Store JDExtractionOutput
-        summary=f"Structured requirements for position: '{result.output.job_title}' at '{company}'",
-        size_indicator=f"{len(result.output.requirements.must_have)} must-have requirements"
-    )
-    return jd_ref
+        try:
+            ref_handle = result.output
+            structured_data = env.read(ref_handle.ref_id)  # Read actual JDExtractionOutput
+            save_subagent_final_output(
+                "JD Extraction Demands", 
+                structured_data.job_title or f"Job_{ref_handle.ref_id[-4:]}", 
+                structured_data.model_dump() if hasattr(structured_data, "model_dump") else structured_data
+            )
+        except Exception as e:
+            sys.stderr.write(f" -> [TELEMETRY ERROR] JD Output save failed: {str(e)}\n")
+            sys.stderr.flush()
+
+        return result.output
 
 
 @mcp.tool(timeout=720.0)  # Extended timeout for slow LLM calls during matching
-async def run_matcher_agent(cv_ref_id: str, jd_ref_id: str) -> ReferenceHandle:
+async def run_matcher_agent(cv_ref_id: str, jd_ref_id: str, scenario: str) -> ReferenceHandle:
     """
-    Performs a comparative evaluation between a structured CV and structured JD reference.
+    Performs comparative evaluation between a structured CV and structured JD reference.
     Saves the MatchOutput back to the environment.
     
     Args:
-        cv_ref_id (str): Pointer to the 'structured_cv' object.
-        jd_ref_id (str): Pointer to the 'structured_jd' object.
+        cv_ref_id: Pointer to the structured CV extraction.
+        jd_ref_id: Pointer to the structured JD extraction.
+        scenario: Operational scenario ('A' or 'B').
     """
-    sys.stderr.write(f" -> [SUB-AGENT] Executing alignment matching on: {cv_ref_id} + {jd_ref_id}\n")
+    sys.stderr.write(f" -> [SUB-AGENT] Executing alignment matching on: {cv_ref_id} + {jd_ref_id} [Scenario: {scenario}]\n")
     sys.stderr.flush()
 
-    # 1. Read the structured data objects directly from the state environment
-    cv_data = env.read(cv_ref_id)
-    jd_data = env.read(jd_ref_id)
-    
-    match_payload = {
-        "cv_details": cv_data.model_dump(),
-        "jd_requirements": jd_data.model_dump()
-    }
-    
-    # 2. Run the sub-agent
-    result = await matcher_subagent.run(
-        f"Perform matching evaluation on these parameters:\n{json.dumps(match_payload, indent=2)}",
-        usage_limits=UsageLimits(request_limit=15)
-    )
+    with mlflow.start_span(name="SubAgent_Matcher_Evaluation", span_type="agent") as span:
+        span.set_inputs({
+            "cv_ref_id": cv_ref_id,
+            "jd_ref_id": jd_ref_id,
+            "scenario": scenario
+        })
 
-    candidate_name = cv_data.candidate_name
-    job_title = jd_data.job_title
-    match_key = f"{candidate_name} -> {job_title}"
-    append_subagent_trace(f"Matcher Agent ({match_key})", result.all_messages())
-    save_subagent_final_output("Matcher Comparative Results", match_key, result.output.model_dump())
-    
-    # 3. Write MatchOutput back to the environment
-    match_ref = env.write(
-        data_type="match_report",
-        payload=result.output,
-        summary="Detailed candidate-to-role compatibility and multi-dimensional alignment report.",
-        size_indicator="Category-based breakdown analysis"
-    )
-    return match_ref
+        prompt = f"Coordinate matching on CV: {cv_ref_id} and JD: {jd_ref_id} under Scenario: {scenario}"
+
+        result = await matcher_subagent.run(prompt)
+
+        append_subagent_trace(f"Matcher Coordinator ({scenario})", result.all_messages())
+
+        try:
+            ref_handle = result.output
+            structured_data = env.read(ref_handle.ref_id)  # Read actual MatchOutput
+            match_key = f"{cv_ref_id} -> {jd_ref_id} [Scenario {scenario}]"
+            save_subagent_final_output(
+                "Matcher Comparative Results", 
+                match_key, 
+                structured_data.model_dump() if hasattr(structured_data, "model_dump") else structured_data
+            )
+        except Exception as e:
+            sys.stderr.write(f" -> [TELEMETRY ERROR] Matcher Output save failed: {str(e)}\n")
+            sys.stderr.flush()
+
+        return result.output
 
 
 
@@ -754,36 +928,36 @@ def job_search(
 # MCP PROMPTS
 # =====================================================================
 
-@mcp.prompt()
-def get_agent_orchestrator_prompt() -> str:
-    """
-    System prompt to instruct the primary AI agent on behavioral guidelines and tool usage.
-    """
-    return AGENT_PROMPT
-
-
-@mcp.prompt()
-def get_cv_extraction_prompt() -> str:
-    """
-    Guidelines and step-by-step instructions on how to parse and audit CV documents.
-    """
-    return CV_PROMPT
-
-
-@mcp.prompt()
-def get_job_description_prompt() -> str:
-    """
-    Instructions on how to analyze and dissect automotive job requirements.
-    """
-    return JOB_DESCRIPTION_PROMPT
-
-
-@mcp.prompt()
-def get_matcher_prompt() -> str:
-    """
-    The analysis matrix guidelines used to align candidates to JDs.
-    """
-    return MATCHER_PROMPT
+#@mcp.prompt()
+#def get_agent_orchestrator_prompt() -> str:
+#    """
+#    System prompt to instruct the primary AI agent on behavioral guidelines and tool usage.
+#    """
+#    return AGENT_PROMPT
+#
+#
+#@mcp.prompt()
+#def get_cv_extraction_prompt() -> str:
+#    """
+#    Guidelines and step-by-step instructions on how to parse and audit CV documents.
+#    """
+#    return CV_PROMPT
+#
+#
+#@mcp.prompt()
+#def get_job_description_prompt() -> str:
+#    """
+#    Instructions on how to analyze and dissect automotive job requirements.
+#    """
+#    return JOB_DESCRIPTION_PROMPT
+#
+#
+#@mcp.prompt()
+#def get_matcher_prompt() -> str:
+#    """
+#    The analysis matrix guidelines used to align candidates to JDs.
+#    """
+#    return MATCHER_PROMPT
 
 
 
@@ -796,10 +970,10 @@ def get_matcher_prompt() -> str:
 cv_extraction_subagent = Agent(
     sub_agent_model,
     model_settings=sub_agent_settings,
-    system_prompt=CV_PROMPT,
+    system_prompt=CV_AGENT_PROMPT,
     deps_type=CVRawDataInput,
-    output_type=CVExtractionOutput,
-    tools=[get_job_description, get_automotive_domains, get_jobs_by_domain],
+    output_type=ReferenceHandle,
+    tools=[get_job_description, get_automotive_domains, get_jobs_by_domain, scrape_pdf_content, tool_extract_cv_profile_by_reference],
     retries=3
 )
 # 2. Specialized Job Description Extraction Agent
@@ -807,9 +981,9 @@ cv_extraction_subagent = Agent(
 jd_extraction_subagent = Agent(
     sub_agent_model,
     model_settings=sub_agent_settings,
-    system_prompt=JOB_DESCRIPTION_PROMPT,
-    output_type=JDExtractionOutput,
-    tools=[get_job_description, get_automotive_domains, get_jobs_by_domain, register_raw_jd_text],
+    system_prompt=JD_AGENT_PROMPT,
+    output_type=ReferenceHandle,
+    tools=[get_job_description, get_automotive_domains, get_jobs_by_domain, register_raw_jd_text,scrape_job_description_url, tool_extract_jd_demands_by_reference],
     retries=3
 )
 
@@ -818,13 +992,12 @@ jd_extraction_subagent = Agent(
 matcher_subagent = Agent(
     sub_agent_model,
     model_settings=sub_agent_settings,
-    system_prompt=MATCHER_PROMPT,
-    output_type=MatchOutput,
-    tools=[get_scoring_framework],
+    system_prompt=MATCHER_AGENT_PROMPT,
+    output_type=ReferenceHandle,
+    tools=[get_scoring_framework, tool_execute_matching_evaluation_by_reference],
     retries=3
 )
 
-#TODO add a judge tool for CV extract and another judge tool validator for the job description extraction, another judge tool for the matcher is this needed? maybe not, maybe we can just have a final judge tool that evaluates the final match and gives a score and feedback on the match quality, this would be useful for iterative improvement of the matcher prompt and logic.
 if __name__ == "__main__":
     # Standard entry point to run the server
     sys.stdout = _real_stdout   # Restore stdout for MCP JSON-RPC communication

@@ -32,6 +32,13 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
+from mcp_server import env
+
+# Clear any old session files from previous runs on startup
+if "app_initialized" not in st.session_state:
+    env.clear()
+    st.session_state["app_initialized"] = True
+
 # ==========================================
 # 2. IMPORTS & AGENT INTEGRATION
 # ==========================================
@@ -49,11 +56,15 @@ def initialize_state():
         st.session_state.seeker_result = None
     if "seeker_messages" not in st.session_state:
         st.session_state.seeker_messages = []
+    if "seeker_telemetry" not in st.session_state:
+        st.session_state.seeker_telemetry = None
         
     if "hr_result" not in st.session_state:
         st.session_state.hr_result = None
     if "hr_messages" not in st.session_state:
         st.session_state.hr_messages = []
+    if "hr_telemetry" not in st.session_state:
+        st.session_state.hr_telemetry = None
         
     if "jd_text" not in st.session_state:
         st.session_state.jd_text = (
@@ -63,15 +74,36 @@ def initialize_state():
             "**Skills:** C++, Python, CANoe, Automotive Ethernet, ISO 26262"
         )
 
+    # Persistent Input parameters
+    if "seeker_keywords" not in st.session_state:
+        st.session_state.seeker_keywords = "Automotive Software Engineer"
+    if "seeker_location" not in st.session_state:
+        st.session_state.seeker_location = "Munich / Remote"
+    if "seeker_max_jobs" not in st.session_state:
+        st.session_state.seeker_max_jobs = 5
+    if "seeker_constraints" not in st.session_state:
+        st.session_state.seeker_constraints = ""
+    if "seeker_cv_file" not in st.session_state:
+        st.session_state.seeker_cv_file = None
+
+    if "hr_jd_source" not in st.session_state:
+        st.session_state.hr_jd_source = "Raw Text"
+    if "hr_jd_input" not in st.session_state:
+        st.session_state.hr_jd_input = st.session_state.jd_text
+    if "hr_jd_url" not in st.session_state:
+        st.session_state.hr_jd_url = "https://example.com/job"
+    if "hr_cv_files" not in st.session_state:
+        st.session_state.hr_cv_files = []
+
 initialize_state()
 
-def run_agent_pipeline(prompt: str):
+def run_agent_pipeline(prompt: str, scenario: str):
     # Fix for Windows Asyncio Subprocess bugs
     if sys.platform == 'win32':
         asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
         
     async def _run():
-        return await execute_agent_prompt(prompt)
+        return await execute_agent_prompt(prompt, scenario)
     
     try:
         loop = asyncio.get_event_loop()
@@ -102,10 +134,37 @@ def clear_telemetry_files():
             except Exception:
                 pass
 
+def capture_telemetry_state():
+    """Reads current telemetry files on disk and returns them as a persistent dictionary."""
+    telemetry = {
+        "subagent_trace": None,
+        "subagent_outputs": None,
+        "mcp_subagents_log": None
+    }
+    if os.path.exists("subagent_trace.json"):
+        try:
+            with open("subagent_trace.json", "r", encoding="utf-8") as f:
+                telemetry["subagent_trace"] = json.load(f)
+        except Exception:
+            pass
+    if os.path.exists("subagent_outputs.json"):
+        try:
+            with open("subagent_outputs.json", "r", encoding="utf-8") as f:
+                telemetry["subagent_outputs"] = json.load(f)
+        except Exception:
+            pass
+    if os.path.exists("mcp_subagents.log"):
+        try:
+            with open("mcp_subagents.log", "r", encoding="utf-8") as f:
+                telemetry["mcp_subagents_log"] = f.read()
+        except Exception:
+            pass
+    return telemetry
+
 # ==========================================
 # 3. HELPER FUNCTION: RENDER PIPELINE RESULTS
 # ==========================================
-def render_results_section(result, messages, is_hr_mode=False):
+def render_results_section(result, messages, telemetry=None, is_hr_mode=False):
     """
     Renders the rich dashboard layout of the Orchestrator results and live pipeline logs.
     """
@@ -113,24 +172,41 @@ def render_results_section(result, messages, is_hr_mode=False):
     result_col, log_col = st.columns([3, 2], gap="large")
     
     with result_col:
-        st.subheader(" Match Analysis Reports")
+        st.subheader(" Ochestrator Analysis Reports")
         st.info(result.conversational_reply)
         
         if result.ranked_results:
-            st.markdown("### Leaderboard")
+            st.markdown("### Job(s) key point(s)")
             
             # Construct a rich metadata table without score columns
             table_data = []
-            for item in result.ranked_results:
-                table_data.append({
-                    "Position / Candidate": item.target_name,
-                    "Company / Current Role": item.target_context,
-                    "Location": getattr(item, "location", "Not Specified") or "Not Specified",
-                    "Salary Range": getattr(item, "salary", "Not Specified") or "Not Specified",
-                    "Job Type": getattr(item, "job_type", "Not Specified") or "Not Specified",
-                    "Workplace Style": getattr(item, "workplace_type", "Not Specified") or "Not Specified",
-                    "URL": getattr(item, "source_url", "Not Specified") or "Not Specified"
-                })
+            
+            if is_hr_mode:
+                # HR Recruiter Mode: There is only 1 target job specification being evaluated.
+                # Render only the first target's parameters to avoid redundant rows.
+                if len(result.ranked_results) > 0:
+                    item = result.ranked_results[0]
+                    table_data.append({
+                        "Position": item.target_name,
+                        "Company": item.target_context,
+                        "Location": getattr(item, "location", "Not Specified") or "Not Specified",
+                        "Salary Range": getattr(item, "salary", "Not Specified") or "Not Specified",
+                        "Job Type": getattr(item, "job_type", "Not Specified") or "Not Specified",
+                        "Workplace Style": getattr(item, "workplace_type", "Not Specified") or "Not Specified",
+                        "URL": getattr(item, "source_url", "Not Specified") or "Not Specified"
+                    })
+            else:
+                # Job Seeker Mode: Multiple matched jobs (N target JDs), render all items.
+                for item in result.ranked_results:
+                    table_data.append({
+                        "Position": item.target_name,
+                        "Company": item.target_context,
+                        "Location": getattr(item, "location", "Not Specified") or "Not Specified",
+                        "Salary Range": getattr(item, "salary", "Not Specified") or "Not Specified",
+                        "Job Type": getattr(item, "job_type", "Not Specified") or "Not Specified",
+                        "Workplace Style": getattr(item, "workplace_type", "Not Specified") or "Not Specified",
+                        "URL": getattr(item, "source_url", "Not Specified") or "Not Specified"
+                    })
             
             # Display rich leaderboard with clickable LinkColumn for the URL
             st.dataframe(
@@ -142,7 +218,7 @@ def render_results_section(result, messages, is_hr_mode=False):
                 }
             )
             
-            # ── 📊 COMPATIBILITY VISUAL COMPARISON PLOTS (RADAR / SPIDER CHARTS) ──────
+            # ── COMPATIBILITY VISUAL COMPARISON PLOTS (RADAR / SPIDER CHARTS) ──────
             st.markdown("### Attribute Coverage Analytics")
             
             label_mapping = {
@@ -313,13 +389,13 @@ def render_results_section(result, messages, is_hr_mode=False):
                 st.markdown(f"- {step}")
 
     with log_col:
-        st.subheader(" Pipeline Telemetry")
+        st.subheader(" Pipeline Logs")
         
         # Configure segmented logging tabs for unified transparency
         log_tab_orch, log_tab_sub, log_tab_outputs = st.tabs([
             " Orchestrator", 
             " Sub-agents Trace", 
-            " Structured Artifacts"
+            " Structured Output"
         ])
         
         # TAB 1: Main Orchestrator Steps
@@ -390,15 +466,13 @@ def render_results_section(result, messages, is_hr_mode=False):
                                 with st.expander(" Agent reasoning", expanded=False):
                                     st.markdown(text)
 
-        # TAB 2: Sub-Agent Interactive Log Trace
+        # TAB 2: Sub-Agent Interactive Log Trace (Robust parsing)
         with log_tab_sub:
-            if not os.path.exists("subagent_trace.json"):
+            traces = telemetry.get("subagent_trace") if telemetry else None
+            if not traces:
                 st.caption("No sub-agent execution trace records found.")
             else:
                 try:
-                    with open("subagent_trace.json", "r", encoding="utf-8") as f:
-                        traces = json.load(f)
-                    
                     st.info(f"Captured **{len(traces)} specialized agent executions**:")
                     for idx, trace_record in enumerate(traces):
                         sub_name = trace_record.get("subagent", "Unknown Sub-agent")
@@ -407,43 +481,51 @@ def render_results_section(result, messages, is_hr_mode=False):
                         with st.expander(f" [{idx+1}] {sub_name}", expanded=False):
                             step_idx = 0
                             for m in sub_messages:
-                                parts = m.get("parts", [])
+                                # Safe extraction regardless of Pydantic AI serialization variants
+                                parts = m.get("parts") or m.get("content") or []
+                                if isinstance(parts, str):
+                                    parts = [{"part_kind": "text", "content": parts}]
+                                elif isinstance(parts, dict):
+                                    parts = [parts]
+                                    
                                 for p in parts:
-                                    kind = p.get("part_kind") or p.get("type") or ""
+                                    kind = p.get("part_kind") or p.get("type") or p.get("part_type") or ""
                                     
                                     # Sub-Agent Tool Executions
                                     if "tool-call" in kind or "ToolCall" in kind or p.get("tool_name"):
                                         step_idx += 1
                                         st.markdown(f"**Step {step_idx}**  `{p.get('tool_name')}`")
-                                        st.json(p.get("args", {}))
+                                        args = p.get("args") or {}
+                                        if isinstance(args, str):
+                                            try: args = json.loads(args)
+                                            except Exception: pass
+                                        st.json(args)
                                         
                                     # Sub-Agent Tool Returns
-                                    elif "tool-return" in kind or "ToolReturn" in kind or p.get("content"):
-                                        st.markdown(f"↳ `{p.get('tool_name')}` — returned")
+                                    elif "tool-return" in kind or "ToolReturn" in kind or p.get("content") and "tool_call_id" in m:
+                                        st.markdown(f"↳ `{p.get('tool_name') or 'Tool Return'}` — returned")
                                         content_val = p.get("content", "")
                                         try:
                                             st.json(json.loads(str(content_val)))
                                         except Exception:
-                                            st.code(str(content_val)[:1000], language="text")
+                                            st.code(str(content_val)[:1000], language="json")
                                             
                                     # Sub-Agent Thoughts
                                     elif "text" in kind or "Text" in kind or p.get("content"):
                                         reasoning = p.get("content", "")
-                                        if reasoning.strip():
-                                            st.caption(" Sub-agent thought reasoning:")
+                                        if isinstance(reasoning, str) and reasoning.strip():
+                                            st.caption(" Sub-agent reasoning:")
                                             st.markdown(reasoning)
                 except Exception as telemetry_err:
                     st.error(f"Failed to load sub-agent telemetry: {str(telemetry_err)}")
 
         # TAB 3: Structured Final Intermediate Models
         with log_tab_outputs:
-            if not os.path.exists("subagent_outputs.json"):
+            outputs_payloads = telemetry.get("subagent_outputs") if telemetry else None
+            if not outputs_payloads:
                 st.caption("No sub-agent parsed output targets found.")
             else:
                 try:
-                    with open("subagent_outputs.json", "r", encoding="utf-8") as f:
-                        outputs_payloads = json.load(f)
-                    
                     for subagent_group, items in outputs_payloads.items():
                         st.markdown(f"####  {subagent_group}")
                         for item_key, payload_body in items.items():
@@ -453,13 +535,12 @@ def render_results_section(result, messages, is_hr_mode=False):
                     st.error(f"Failed to load structured outputs: {str(outputs_err)}")
 
         # Optional HTTP debugger log file
-        if os.path.exists("mcp_subagents.log"):
+        mcp_log = telemetry.get("mcp_subagents_log") if telemetry else None
+        if mcp_log:
             with st.expander(" Raw Sub-agent HTTP Log", expanded=False):
-                with open("mcp_subagents.log", "r", encoding="utf-8") as f:
-                    log_data = f.read()
                 st.text_area(
                     "Sub-agent HTTP Calls:",
-                    value=log_data[-6000:] if len(log_data) > 6000 else log_data,
+                    value=mcp_log[-6000:] if len(mcp_log) > 6000 else mcp_log,
                     height=300,
                     disabled=True,
                     key=f"subagent_log_area_{is_hr_mode}"
@@ -490,25 +571,36 @@ with tab_seeker:
         with st.container(border=True):
             st.markdown("#### Upload CV (PDF)")
             uploaded_cv = st.file_uploader("Select CV File:", type=["pdf"], key="seeker_cv_upload")
-            search_keywords = st.text_input("Job Title / Target Keywords:", value="Automotive Software Engineer", key="seeker_keywords")
             
-            # --- Added Input Parameters ---
-            location_filter = st.text_input("Location Filter:", value="Munich / Remote", key="seeker_location")
-            max_jobs = st.number_input("Max Jobs to Search / Match:", min_value=1, max_value=20, value=5, step=1, key="seeker_max_jobs")
-            # ------------------------------
-            
-            search_constraints = st.text_area("Optional Details to Search:", value="", placeholder="e.g. 'Must focus on ISO 26262'", height=100, key="seeker_constraints")
+            # Persist and capture newly uploaded CV data in Session State
+            if uploaded_cv is not None:
+                st.session_state.seeker_cv_file = {
+                    "name": uploaded_cv.name,
+                    "bytes": uploaded_cv.getvalue()
+                }
+
+            # Render persistent feedback of the staged file
+            if st.session_state.seeker_cv_file:
+                st.success(f" Staged CV: **{st.session_state.seeker_cv_file['name']}**")
+                if st.button("Clear CV Selection", key="clear_seeker_cv"):
+                    st.session_state.seeker_cv_file = None
+                    st.rerun()
+
+            search_keywords = st.text_input("Job Title / Target Keywords:", value=st.session_state.seeker_keywords, key="seeker_keywords")
+            location_filter = st.text_input("Location Filter:", value=st.session_state.seeker_location, key="seeker_location")
+            max_jobs = st.number_input("Max Jobs to Search / Match:", min_value=1, max_value=20, value=st.session_state.seeker_max_jobs, step=1, key="seeker_max_jobs")
+            search_constraints = st.text_area("Optional Details to Search:", value=st.session_state.seeker_constraints, placeholder="e.g. 'Must focus on ISO 26262'", height=100, key="seeker_constraints")
             trigger_seeker = st.button(" Find & Match Jobs", type="primary", use_container_width=True, key="seeker_trigger")
 
     with col2:
         if trigger_seeker:
-            if not uploaded_cv:
+            if not st.session_state.seeker_cv_file:
                 st.error("Please upload a CV document first.")
             else:
                 clear_telemetry_files() # Call before running pipeline
                 with st.status("Running agentic pipeline...", expanded=True) as status:
                     with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp_file:
-                        tmp_file.write(uploaded_cv.getvalue())
+                        tmp_file.write(st.session_state.seeker_cv_file["bytes"])
                         temp_cv_path = tmp_file.name
                     
                     custom_prompt = (
@@ -521,9 +613,10 @@ with tab_seeker:
                     custom_prompt += "Evaluate the jobs, align requirements, and return structured evaluations."
                     
                     try:
-                        result = run_agent_pipeline(custom_prompt)
+                        result = run_agent_pipeline(custom_prompt, scenario = "B")
                         st.session_state.seeker_result = result.output
                         st.session_state.seeker_messages = result.all_messages()
+                        st.session_state.seeker_telemetry = capture_telemetry_state()
                         status.update(label="Matching Completed!", state="complete", expanded=False)
                     except Exception as ex:
                         render_exception(ex)
@@ -537,6 +630,7 @@ with tab_seeker:
         render_results_section(
             st.session_state.seeker_result, 
             st.session_state.seeker_messages, 
+            telemetry=st.session_state.seeker_telemetry,
             is_hr_mode=False
         )
 
@@ -548,12 +642,12 @@ with tab_hr:
     with col1:
         with st.container(border=True):
             st.markdown("#### 1. Job Specification")
-            jd_source = st.radio("Job Description Source:", ["Raw Text", "URL Link"], key="hr_jd_source")
+            jd_source = st.radio("Job Description Source:", ["Raw Text", "URL Link"], index=0 if st.session_state.hr_jd_source == "Raw Text" else 1, key="hr_jd_source")
             if jd_source == "Raw Text":
-                jd_input = st.text_area("Paste Requirements:", value=st.session_state.jd_text, height=250, key="hr_jd_input")
+                jd_input = st.text_area("Paste Requirements:", value=st.session_state.hr_jd_input, height=250, key="hr_jd_input")
                 jd_url = ""
             else:
-                jd_url = st.text_input("Job Posting URL:", value="https://example.com/job", key="hr_jd_url")
+                jd_url = st.text_input("Job Posting URL:", value=st.session_state.hr_jd_url, key="hr_jd_url")
                 jd_input = ""
             
     with col2:
@@ -561,20 +655,35 @@ with tab_hr:
             st.markdown("#### 2. Applicants")
             uploaded_cvs = st.file_uploader("Upload CVs (PDF):", type=["pdf"], accept_multiple_files=True, key="hr_cv_upload")
             
+            # Persist and capture newly uploaded CV files in Session State
+            if uploaded_cvs:
+                st.session_state.hr_cv_files = [
+                    {"name": f.name, "bytes": f.getvalue()} for f in uploaded_cvs
+                ]
+            
+            # Render persistent feedback of the staged files
+            if st.session_state.hr_cv_files:
+                st.success(f" **{len(st.session_state.hr_cv_files)}** staged CV(s):")
+                for f in st.session_state.hr_cv_files:
+                    st.markdown(f"- {f['name']}")
+                if st.button("Clear All Candidates", key="clear_hr_cvs"):
+                    st.session_state.hr_cv_files = []
+                    st.rerun()
+
     st.divider()
     trigger_hr = st.button(" Run Comparative Engine", type="primary", use_container_width=True, key="hr_trigger")
     
     if trigger_hr:
-        if not uploaded_cvs:
+        if not st.session_state.hr_cv_files:
             st.error("Please upload at least one candidate CV.")
         else:
             clear_telemetry_files() # Call before running pipeline
             with st.status("Processing candidates...", expanded=True) as status:
                 temp_paths = []
-                for cv_file in uploaded_cvs:
+                for cv_file in st.session_state.hr_cv_files:
                     with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp_file:
-                        tmp_file.write(cv_file.getvalue())
-                        temp_paths.append((cv_file.name, tmp_file.name))
+                        tmp_file.write(cv_file["bytes"])
+                        temp_paths.append((cv_file["name"], tmp_file.name))
                 
                 formatted_cv_list = "\n".join([f"- Candidate '{name}' at: '{path}'" for name, path in temp_paths])
                 jd_instructions = f"--- JOB DESCRIPTION ---\n{jd_input}" if jd_source == "Raw Text" else f"Scrape requirements from: {jd_url}"
@@ -582,9 +691,10 @@ with tab_hr:
                 hr_prompt = f"Match candidates against the Target Job.\n\n{jd_instructions}\n\n--- CANDIDATES ---\n{formatted_cv_list}\n\nReturn structured report."
                 
                 try:
-                    result = run_agent_pipeline(hr_prompt)
+                    result = run_agent_pipeline(hr_prompt, scenario = "A")
                     st.session_state.hr_result = result.output
                     st.session_state.hr_messages = result.all_messages()
+                    st.session_state.hr_telemetry = capture_telemetry_state()
                     status.update(label="Evaluation Finished!", state="complete", expanded=False)
                 except Exception as ex:
                     render_exception(ex)
@@ -599,5 +709,6 @@ with tab_hr:
         render_results_section(
             st.session_state.hr_result, 
             st.session_state.hr_messages, 
+            telemetry=st.session_state.hr_telemetry,
             is_hr_mode=True
         )

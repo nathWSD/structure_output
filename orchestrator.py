@@ -1,11 +1,10 @@
-
-
 import logging
 import sys
 import os
 import json
 import httpx
 from dotenv import load_dotenv
+import mlflow
 
 # Configure logging
 logging.basicConfig(
@@ -37,6 +36,9 @@ from custom_guardrails import check_input_safety, check_output_safety
 
 load_dotenv()
 
+mlflow.set_tracking_uri(os.getenv("MLFLOW_URL")) 
+mlflow.set_experiment(os.getenv("OCHESTRATOR_EXP")) 
+
 async def log_request(request: httpx.Request):
     print(f"\n\n==================================================")
     print(f" [ORCHESTRATOR REQUEST] ---> {request.method} {request.url}")
@@ -57,7 +59,6 @@ debug_client = httpx.AsyncClient(
 # 1. CONFIGURE ORCHESTRATOR MODEL
 # =====================================================================
 
-
 orchestrator_model = OpenAIChatModel(
     os.getenv("MODEL_ID_UNI_GREIFSWALD"),
     provider=OpenAIProvider(
@@ -75,7 +76,6 @@ settings = ModelSettings(
     extra_body=json.loads(os.getenv("LITELLM_EXTRA_BODY", "{}"))
 )
 
-
 class MockRunResult:
     """
     A lightweight wrapper that mimics the Pydantic AI RunResult interface.
@@ -85,13 +85,12 @@ class MockRunResult:
         self.output = output
 
     def all_messages(self) -> list:
-        # Returns an empty list so the Streamlit log viewer doesn't crash
         return []
 
     def new_messages(self) -> list:
         return []
-    
-async def execute_agent_prompt(user_prompt: str):
+
+async def execute_agent_prompt(user_prompt: str, scenario: str):
     """
     Creates a fresh subprocess connection and Agent instance for every run.
     """
@@ -101,7 +100,6 @@ async def execute_agent_prompt(user_prompt: str):
         print(f"\n[SECURITY BLOCK] Input Guardrail triggered: {input_validation.error_message}")
         sys.stdout.flush()
         
-        # Wrap the fallback in MockRunResult so app.py can safely read .output and .all_messages()
         fallback_response = OrchestratorResponse(
             conversational_reply=f"Request blocked: {input_validation.error_message}",
             recommended_next_steps=[
@@ -111,45 +109,67 @@ async def execute_agent_prompt(user_prompt: str):
         )
         return MockRunResult(output=fallback_response)
 
-    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-    script_path = os.path.join(BASE_DIR, "mcp_server.py")
-    
-    transport = StdioTransport(
-        command=sys.executable,
-        args=[script_path],
-        env={**os.environ, "PYTHONIOENCODING": "utf-8"}
-    )
-    
-    toolset = MCPToolset(transport, init_timeout=30.0, read_timeout=900.0)
+    # Start an MLflow parent run
+    with mlflow.start_run(run_name=f"Orchestrator_{scenario}") as run:
+        mlflow.log_params({
+            "scenario": scenario,
+            "user_prompt_char_length": len(user_prompt)
+        })
 
-    orchestrator_agent = Agent(
-        orchestrator_model,
-        model_settings=settings,
-        system_prompt=AGENT_PROMPT,
-        output_type=OrchestratorResponse,  
-        toolsets=[toolset],
-        retries=3 
-    )
+        # Start the root tracing span
+        with mlflow.start_span(name="Main_Orchestrator_Pipeline", span_type="chain") as parent_span:
+            parent_span.set_inputs({"user_prompt": user_prompt, "scenario": scenario})
 
-    print(" AI Orchestrator: Spawning Fresh MCP Connection...")
-    
-    async with orchestrator_agent:
-        result = await orchestrator_agent.run(
-            user_prompt,
-            usage_limits=UsageLimits(request_limit=60) 
-        )
-        
-        # 2. RUN OUTPUT COMPLIANCE GUARDRAIL
-        output_validation = check_output_safety(result.output.conversational_reply)
-        if isinstance(output_validation, FailResult):
-            print(f"\n[SECURITY BLOCK] Output Guardrail triggered: {output_validation.error_message}")
-            sys.stdout.flush()
-            
-            # Wrap the compliance block fallback in MockRunResult
-            fallback_response = OrchestratorResponse(
-                conversational_reply="An internal output policy validation prevented this response from being displayed.",
-                recommended_next_steps=["Try modifying the request to focus on standard compliant outcomes."]
+            BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+            script_path = os.path.join(BASE_DIR, "mcp_server.py")
+
+            transport = StdioTransport(
+                command=sys.executable,
+                args=[script_path],
+                env={**os.environ, "PYTHONIOENCODING": "utf-8"}
             )
-            return MockRunResult(output=fallback_response)
-            
-        return result
+
+            toolset = MCPToolset(transport, init_timeout=30.0, read_timeout=900.0)
+
+            orchestrator_agent = Agent(
+                orchestrator_model,
+                model_settings=settings,
+                system_prompt=AGENT_PROMPT,
+                output_type=OrchestratorResponse,  
+                toolsets=[toolset],
+                retries=3 
+            )
+
+            print(" AI Orchestrator: Spawning Fresh MCP Connection...")
+
+            # Clean Markdown formatting structure to prevent model confusion
+            final_user_prompt = (
+                f"=== RECOGNIZED OPERATIONAL PARAMETERS ===\n"
+                f"SCENARIO: {scenario}\n\n"
+                f"=== USER INPUT AND INSTRUCTIONS ===\n"
+                f"{user_prompt}\n"
+            )
+            print(f"THE USER PROMPT {final_user_prompt}")
+
+            async with orchestrator_agent:
+                result = await orchestrator_agent.run(
+                    final_user_prompt,
+                    usage_limits=UsageLimits(request_limit=60) 
+                )
+                output_data = result.output.model_dump()
+                parent_span.set_outputs(output_data)
+                mlflow.log_dict(output_data, "orchestrator_response.json")
+    
+                # 2. RUN OUTPUT COMPLIANCE GUARDRAIL
+                output_validation = check_output_safety(result.output.conversational_reply)
+                if isinstance(output_validation, FailResult):
+                    print(f"\n[SECURITY BLOCK] Output Guardrail triggered: {output_validation.error_message}")
+                    sys.stdout.flush()
+
+                    fallback_response = OrchestratorResponse(
+                        conversational_reply="An internal output policy validation prevented this response from being displayed.",
+                        recommended_next_steps=["Try modifying the request to focus on standard compliant outcomes."]
+                    )
+                    return MockRunResult(output=fallback_response)
+
+                return result

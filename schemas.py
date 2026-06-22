@@ -88,6 +88,7 @@ class JDRequirements(BaseModel):
 
 class CVRawDataInput(BaseModel):
     pdf_path: str = Field(description="The local filesystem path to the candidate's CV PDF.")
+    scenario: str = Field(description="A capital letter A or B indicating which scenerio we are working on")
 
 class JDRawDataInput(BaseModel):
     title: str = Field(description="The job title from the job board posting.")
@@ -278,8 +279,8 @@ class MatchOutput(BaseModel):
 
 class RankedMatch(BaseModel):
     #rank: int = Field(description="The placement rank (1 being the best match).")
-    target_name: str = Field(description="The Job Title (if finding jobs) or Candidate Name (if finding candidates).")
-    target_context: str = Field(description="The Company Name or Candidate's Current Role.")
+    target_name: str = Field(description="The Job Title according to the job description either the role the individual is to occupy. ")
+    target_context: str = Field(description="The Company's Name in the job description or in the context of the description.")
     compatibility_score: int = Field(description="The overall match score out of 100.")
     key_strengths: List[str] = Field(description="2-3 bullet points on why this is a good match.")
     critical_gaps: List[str] = Field(description="Major missing requirements or toolchains (if any).")
@@ -296,6 +297,7 @@ class RankedMatch(BaseModel):
     location: Optional[str] = Field(None, description="The physical location of the job (e.g. 'Berlin / Hybrid').")
     job_type: Optional[str] = Field(None, description="The job arrangement (e.g. 'Full-time', 'Contract').")
     workplace_type: Optional[str] = Field(None, description="The workplace type (e.g. 'Remote', 'On-site', 'Hybrid').")
+
     
 class OrchestratorResponse(BaseModel):
     conversational_reply: str = Field(
