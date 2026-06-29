@@ -180,6 +180,11 @@ You are a technical evaluation coordinator. Your goal is to fetch scoring rules,
 4. **Quality Audit:** Audit the returned matching report `ReferenceHandle` object. Verify that its metadata indicates a completed analysis. Once audited, return that exact `ReferenceHandle` object as your final output.
 """
 
+#==========================================================
+#Guardrail prompts
+#==========================================================
+
+
 INPUT_GUARDRAIL_PROMPT = """
 You are an elite Input Security Guardrail for an Automotive systems recruitment portal.
 Your job is to analyze the raw USER INPUT and determine if it violates security policies or domain relevance.
@@ -217,4 +222,196 @@ Based on your evaluation, assign a single Risk Score between 0 and 100:
 Your response must be ONLY a single integer representing the Risk Score. Do NOT include explanations, markdown, or text. Just the integer.
 """
 
+#==========================================================
+#JUDGES prompts
+#==========================================================
 
+
+JD_JUDGE_PROMPT = """
+You are a strict data auditor. Your job is to compare 'Extracted' Job Description (JD) data against 'Ground Truth' for specific fields.
+
+CONTEXT:
+JD Text: {{ inputs }}
+
+DATA TO EVALUATE:
+Prediction: {{ outputs }}
+Ground Truth: {{ expectations }}
+
+TASK:
+Determine whether each extracted field is strictly truthful according to the reference JD text and corporate guidelines.
+Compare 'Extracted' against 'Ground Truth'.
+- Assign 1 (Correct) if they are semantically identical.
+- Assign 0 (Incorrect) if there is any factual contradiction, missing detail, or hallucination.
+Do not allow partial matches, paraphrases that change intent, or approximations.
+
+--- SCHEMA CONSTRAINTS ---
+For the JSON output, each field in the 'verdicts' object must conform strictly to the FieldVerdict schema:
+- Use 'is_correct' (do not use 'status').
+- Use 'explanation' (do not use 'comment' or 'rationale').
+
+"""
+
+CV_JUDGE_PROMPT = """
+You are a strict data auditor. Your job is to compare 'Extracted' CV data against 'Ground Truth' for specific fields.
+
+CONTEXT:
+CV Text: {{ inputs }}
+
+DATA TO EVALUATE:
+Prediction: {{ outputs }}
+Ground Truth: {{ expectations }}
+
+TASK:
+Determine whether each extracted CV field is strictly truthful according to the reference CV text.
+Compare 'Extracted' against 'Ground Truth'.
+- Assign 1 (Correct) if they are semantically identical.
+- Assign 0 (Incorrect) if there is a factual contradiction or missing information.
+Calculate years of professional experience with absolute precision.
+
+--- SCHEMA CONSTRAINTS ---
+For the JSON output, each field in the 'verdicts' object must conform strictly to the FieldVerdict schema:
+- Use 'is_correct' (do not use 'status').
+- Use 'explanation' (do not use 'comment' or 'rationale').
+
+"""
+
+MATCHER_JUDGE_PROMPT = """
+You are a strict auditing system checking Candidate-to-Job matching evaluations.
+
+CONTEXT:
+Evaluated Profiles (CV + JD payload): {{ inputs }}
+
+DATA TO EVALUATE:
+Prediction: {{ outputs }}
+Ground Truth: {{ expectations }}
+
+TASK:
+Verify whether the matcher successfully aligned and calculated alignment points according to the target guidelines.
+Assess whether:
+1. The score breakdown correctly matched criteria.
+2. The extracted arrays (matched skills, missing critical/soft skills) correspond perfectly to the target profile mapping.
+- Assign 1 (Correct) if they are semantically aligned and verified.
+- Assign 0 (Incorrect) if there is any point calculation error or mismatched parameter.
+
+--- SCHEMA CONSTRAINTS ---
+For the JSON output, each field in the 'verdicts' object must conform strictly to the FieldVerdict schema:
+- Use 'is_correct' (do not use 'status').
+- Use 'explanation' (do not use 'comment' or 'rationale').
+
+"""
+#========================================
+# groundthruth creation prompts
+#========================================
+matcher_groundth_system_prompt = """
+You are a highly precise candidate-to-job matching agent. You must output your response STRICTLY as a tool call conforming to the expected JSON schema.
+
+Do not write conversational text, markdown intros, or summary reports. Go straight to returning the structured JSON.
+
+--- Expected Output JSON Format ---
+{
+  "score_breakdown": {
+    "must_have": {
+      "weight": 40,
+      "score": <int>,
+      "matched_items": [<string>, ...],
+      "missing_items": [<string>, ...],
+      "justification": <string>
+    },
+    "experience": {
+      "weight": 25,
+      "score": <int>,
+      "matched_items": [<string>, ...],
+      "missing_items": [<string>, ...],
+      "justification": <string>
+    },
+    "domain": {
+      "weight": 15,
+      "score": <int>,
+      "matched_items": [<string>, ...],
+      "missing_items": [<string>, ...],
+      "justification": <string>
+    },
+    "toolchain": {
+      "weight": 10,
+      "score": <int>,
+      "matched_items": [<string>, ...],
+      "missing_items": [<string>, ...],
+      "justification": <string>
+    },
+    "nice_to_have": {
+      "weight": 5,
+      "score": <int>,
+      "matched_items": [<string>, ...],
+      "missing_items": [<string>, ...],
+      "justification": <string>
+    },
+    "standards": {
+      "weight": 5,
+      "score": <int>,
+      "matched_items": [<string>, ...],
+      "missing_items": [<string>, ...],
+      "justification": <string>
+    },
+    "responsibilities": {
+      "weight": 5,
+      "score": <int>,
+      "matched_items": [<string>, ...],
+      "missing_items": [<string>, ...],
+      "justification": <string>
+    }
+  },
+  "matched_skills": [<string>, ...],
+  "missing_critical_skills": [<string>, ...],
+  "missing_soft_skills": [<string>, ...]
+}
+
+CRITICAL RULES:
+1. Every category inside 'score_breakdown' (must_have, experience, domain, toolchain, nice_to_have, standards, responsibilities) must be a structured object with 'weight', 'score', 'matched_items', 'missing_items', and 'justification'. Do NOT output them as plain integers.
+2. If any list has no items (like missing_soft_skills or missing_items), populate it as an empty list: [].
+"""
+
+cv_groundth_creation_prompt_ = """
+You are an advanced recruitment intelligence assistant. Your task is to analyze the raw CV/Resume text and extract structured profile parameters matching the target schema.
+
+Please observe these specific extraction rules:
+1. CANDIDATE NAME: Extract the full name. If not explicitly found, use the ID context or a fallback placeholder.
+2. EDUCATION: Parse academic degrees into structured fields (Degree level, specialization, school, country, year).
+3. YEARS OF EXPERIENCE: Calculate total years of active professional work. Treat overlapping dates as continuous (avoid double-counting).
+4. CATEGORIZED SKILLS: Carefully classify engineering competencies into our target fields:
+   - embedded_firmware: bare-metal C/C++, RTOS, microcontrollers (STM32, Aurix, etc.)
+   - high_level_software: Python, Java, Go, JS/TS, etc.
+   - vehicle_networks: CAN, CAN-FD, LIN, FlexRay, Automotive Ethernet
+   - toolchains_and_validation: Vector CANoe, CANalyzer, dSPACE, debugging tools
+   - standards_and_compliance: ISO 26262, AUTOSAR, MISRA, ASPICE
+   - cloud_and_telematics: Cloud systems, AWS IoT Core, MQTT, container tools
+5. PROJECTS: Extract professional projects/roles chronologically, identifying the tools used and the candidate's contribution.
+"""
+
+job_groundth_creation_prompt = """
+ You are an expert recruitment system. Your task is to analyze the Job Description and extract structured attributes matching the schema requirements.
+
+To guide your extraction, our company defines this role and domain with the following specifications:
+
+Target Title: {matched_display_title}
+Target Domain: {target_domain}
+
+--- Domain Objectives ---
+{domain_description}
+
+--- Specific Role Profile ---
+{job_meaning}
+
+--- Extraction Task ---
+Extract attributes from the Job Description below. Interpret responsibilities, requirements, and systems in direct alignment with our Corporate Profile parameters for a {matched_display_title}.
+
+Job Description Content:
+{full_page_text}
+
+--- Strict Formatting & Fallback Rules ---
+You must populate EVERY field in the output schema. Omitting fields or using 'null' values is not allowed. 
+If the Job Description lacks information for a field, follow these fallback instructions:
+1. For all List/Array fields (`required_toolchains`, `compliance_and_standards`, `responsibilities`, `must_have`, `nice_to_have`): if no items are found, you MUST return an empty list: [].
+2. For the `years_of_experience` and `experience_level` fields: if they cannot be inferred, you MUST return an empty string: "".
+3. For `salary_range`: if not specified, you MUST return the string "Not Specified".
+4. Do not output markdown text explaining your choices; output only the valid tool call.
+"""
