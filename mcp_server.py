@@ -27,18 +27,20 @@ from dotenv import load_dotenv
 
 from jobspy import scrape_jobs
 
-from playwright.sync_api import sync_playwright
+#from playwright.sync_api import sync_playwright
 #from tavily import TavilyClient
 
-from pydantic import BaseModel, Field
-from pydantic_ai import Agent, RunContext
+#from pydantic import BaseModel, Field
+from pydantic_ai import Agent
 from pydantic_ai.models.openai import OpenAIChatModel
 from pydantic_ai.providers.openai import OpenAIProvider
 from pydantic_ai.profiles import ModelProfile
 from pydantic_ai.settings import ModelSettings
-from pydantic_ai.mcp import MCPServerStdio
-from pydantic_ai.usage import UsageLimits  
-from pydantic_ai.messages import ModelRequest, ModelResponse, ToolCallPart, ToolReturnPart
+from pydantic_ai.messages import ModelMessagesTypeAdapter
+
+#from pydantic_ai.mcp import MCPServerStdio
+#from pydantic_ai.usage import UsageLimits  
+#from pydantic_ai.messages import ModelRequest, ModelResponse, ToolCallPart, ToolReturnPart
 
 from prompts import (
     CV_AGENT_PROMPT,
@@ -78,8 +80,6 @@ HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
 }
 
-from pydantic_ai.messages import ModelMessagesTypeAdapter
-
 # =====================================================================
 # TELEMETRY & TRANSPARENCY PIPELINE HELPERS
 # =====================================================================
@@ -96,7 +96,6 @@ def append_subagent_trace(subagent_name: str, messages: list):
                 except Exception:
                     traces = []
                     
-        # Safely serialize Pydantic-AI message schemas using the official TypeAdapter
         serialized_messages = json.loads(ModelMessagesTypeAdapter.dump_json(messages).decode("utf-8"))
         
         traces.append({
@@ -186,7 +185,6 @@ subagent_debug_client = httpx.AsyncClient(
 )
 
 
-# Create the official OpenAI client for the sub-agents
 
 model = OpenAIChatModel(
     os.getenv("MODEL_ID_UNI_GREIFSWALD"),
@@ -252,7 +250,6 @@ class MCPEnvironment:
             "size_indicator": size_indicator
         }
         
-        # Save state changes
         self._save_to_disk()
         
         return ReferenceHandle(
@@ -264,7 +261,6 @@ class MCPEnvironment:
 
     def read(self, ref_id: str) -> Any:
         """Retrieves a payload from the disk-backed environment by its reference ID."""
-        # Always read fresh from disk to ensure cross-process alignment
         self._registry = self._load_from_disk()
         
         if ref_id not in self._registry:
@@ -293,11 +289,10 @@ class MCPEnvironment:
             except Exception as e:
                 print(f"Failed to delete registry file: {e}")
 
-# Initialize the global environment instance
 env = MCPEnvironment()
 
 # =====================================================================
-# 2. UNIVERSAL INSPECTION & ENVIRONMENT UTILS
+#  UNIVERSAL INSPECTION & ENVIRONMENT UTILS
 # =====================================================================
 
 @mcp.tool()
@@ -383,7 +378,7 @@ def get_jobs_by_domain() -> ReferenceHandle:
         raise RuntimeError(f"Failed to fetch job mappings: {str(e)}")
 
 @mcp.resource("matcher://scoring-framework")
-def get_scoring_framework() -> str:
+def get_scoring_framework() -> ReferenceHandle:
     """
     Returns the official scoring hierarchy registered in the environment.
 
@@ -469,7 +464,6 @@ def scrape_job_description_url(url: str) -> ReferenceHandle:
     }
     
     try:
-        # Redirect standard output prints to avoid breaking MCP JSON-RPC protocol
         with redirect_stdout(sys.stderr):
             response = requests.get(url, headers=headers, timeout=30)
             response.raise_for_status()
@@ -539,7 +533,7 @@ async def tool_extract_cv_profile_by_reference(
     pdf_text_ref_id: str, 
     scenario: str,
     context_ref_id: str = None
-) -> CVExtractionOutput:
+) -> ReferenceHandle:
     """
     Executes CV extraction using a single-turn structured LLM call. 
     Reads raw CV text and alignment context directly from the state environment.
@@ -572,7 +566,6 @@ async def tool_extract_cv_profile_by_reference(
     )
     structured_output = result.output
 
-    # Write structured output directly to the state registry from inside the tool
     ref = env.write(
         data_type="structured_cv",
         payload=structured_output,
@@ -587,7 +580,7 @@ async def tool_extract_jd_demands_by_reference(
     index: int = 0,
     scenario: str = "B",
     context_ref_id: str = None
-) -> JDExtractionOutput:
+) -> ReferenceHandle:
     """
     Executes JD requirements extraction using a single-turn structured LLM call.
     Reads raw job listings and alignment context directly from the state environment.
@@ -646,7 +639,7 @@ async def tool_execute_matching_evaluation_by_reference(
     jd_data_ref_id: str, 
     scenario: str,
     context_ref_id: str = None
-) -> MatchOutput:
+) -> ReferenceHandle:
     """
     Executes a matching evaluation using structured data references and scenario constraints.
     
@@ -1004,4 +997,3 @@ if __name__ == "__main__":
     mcp.run() 
 #    response = asyncio.run(run_cv_extraction_agent(pdf_path = r"cv/data/ENGINEERING/12011623.pdf"))
 #    print(response)
-

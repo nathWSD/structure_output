@@ -20,7 +20,7 @@ def main():
         mlflow_command = [
             sys.executable, "-m", "mlflow", "server",
             "--backend-store-uri", "sqlite:///mlflow.db",
-            "--host", "127.0.0.1",
+            "--host", "0.0.0.0", #"127.0.0.1",
             "--port", str(mlflow_port)
         ]
         

@@ -1,0 +1,17 @@
+beautifulsoup4>=4.12.0
+fastmcp>=3.0.0
+guardrails-ai>=0.4.0
+httpx>=0.27.0
+python-jobspy>=1.1.82
+playwright>=1.40.0
+litellm>=1.0.0
+mlflow>=3.12.0
+nest-asyncio>=1.6.0
+pandas>=2.2.0,<3.0.0
+pdfplumber>=0.11.9
+plotly>=6.9.0
+pydantic>=2.13.0
+pydantic-ai>=2.9.0
+python-dotenv>=1.2.2
+requests>=2.32.0
+streamlit>=1.50.0

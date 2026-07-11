@@ -36,8 +36,31 @@ from custom_guardrails import check_input_safety, check_output_safety
 
 load_dotenv()
 
-mlflow.set_tracking_uri(os.getenv("MLFLOW_URL")) 
-mlflow.set_experiment(os.getenv("OCHESTRATOR_EXP")) 
+# =====================================================================
+# CONFIGURE MLFLOW TRACKING & EXPERIMENT
+# =====================================================================
+mlflow_url = os.getenv("MLFLOW_URL")
+experiment_name = os.getenv("OCHESTRATOR_EXP")
+
+if mlflow_url:
+    mlflow.set_tracking_uri(mlflow_url)
+
+if experiment_name:
+    try:
+        # Check if the experiment already exists in MLflow
+        experiment = mlflow.get_experiment_by_name(experiment_name)
+        
+        # If the experiment doesn't exist, create it
+        if experiment is None:
+            logging.info(f"Experiment '{experiment_name}' not found. Creating it...")
+            mlflow.create_experiment(experiment_name)
+            
+        # Set it as the active experiment
+        mlflow.set_experiment(experiment_name)
+    except Exception as e:
+        logging.error(f"Failed to initialize MLflow experiment '{experiment_name}': {e}")
+else:
+    logging.warning("OCHESTRATOR_EXP environment variable is not set. MLflow initialization skipped.")
 
 async def log_request(request: httpx.Request):
     print(f"\n\n==================================================")

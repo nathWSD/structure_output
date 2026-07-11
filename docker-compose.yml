@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  matching-portal:
+    build: .
+    container_name: agentic_matching_portal
+    ports:
+      - "8501:8501"  # Streamlit Frontend
+      - "8050:8050"  # MLflow Tracking Server
+    volumes:
+      # Verhindert Datenverlust der MLflow-Experimente und Logfiles bei Container-Neustarts
+      - ./mlflow.db:/app/mlflow.db
+      - ./mlruns:/app/mlruns
+      # Optional: Falls Sie die extrahierten RLM-Zustände auf dem Host behalten möchten
+      - ./mcp_state_registry.pkl:/app/mcp_state_registry.pkl
+    env_file:
+      - .env
+    environment:
+      - MLFLOW_HOST=0.0.0.0
+    restart: unless-stopped
