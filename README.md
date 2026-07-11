@@ -1,4 +1,4 @@
-# Agentic CV Matching Portal (Automotive Roles & Domains Server)
+# Agentic CV Matching Portal 
 
 Dieses Projekt ist ein agentenbasiertes Rekrutierungs- und Matching-Portal, das speziell beispielweise auf die Anforderungen der Automobilindustrie zugeschnitten ist. 
 
