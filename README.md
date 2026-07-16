@@ -6,14 +6,10 @@ Das System nutzt **Pydantic AI** zur Steuerung spezialisierter LLM-Sub-Agenten, 
 
 ---
 ## Demo
-<video src="demo/demo_phase_prod.mp4" controls width="700">
-  Your browser does not support the video tag.
-</video>
+<video src="https://nathwsd.github.io/structure_output/videos/demo_phase_prod.mp4" controls width="700"></video>
 *Demonstration der produktiven Matching-Pipeline (Phase 2).*
 
-<video src="demo/demo_phase_exp.mp4" controls width="700">
-  Your browser does not support the video tag.
-</video>
+<video src="https://nathwsd.github.io/structure_output/videos/demo_phase_exp.mp4" controls width="700"></video>
 *Mlflow Anwendung mit Datensätze, Experimente, Evaluation .*
 
 ## Schnellstart über Docker Compose
