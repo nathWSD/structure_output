@@ -5,11 +5,12 @@ Dieses Projekt ist ein agentenbasiertes Rekrutierungs- und Matching-Portal, das 
 Das System nutzt **Pydantic AI** zur Steuerung spezialisierter LLM-Sub-Agenten, **FastMCP** (Model Context Protocol) zur Bereitstellung systemnaher Werkzeuge und **MLflow** zur strukturierten Überwachung und Evaluierung der Extraktionsgüte.
 
 ---
+
 ## Demo
-<video src="https://nathwsd.github.io/structure_output/videos/demo_phase_prod.mp4" controls width="700"></video>
+[![Demo Video](docs/videos/demo_thumbnail.png)](https://nathwsd.github.io/structure_output/videos/demo_phase_prod.mp4)
 *Demonstration der produktiven Matching-Pipeline (Phase 2).*
 
-<video src="https://nathwsd.github.io/structure_output/videos/demo_phase_exp.mp4" controls width="700"></video>
+[![Demo Video](docs/videos/demo_thumbnail.png)](https://nathwsd.github.io/structure_output/videos/demo_phase_exp.mp4)
 *Mlflow Anwendung mit Datensätze, Experimente, Evaluation .*
 
 ## Schnellstart über Docker Compose
