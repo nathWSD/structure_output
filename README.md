@@ -5,6 +5,16 @@ Dieses Projekt ist ein agentenbasiertes Rekrutierungs- und Matching-Portal, das 
 Das System nutzt **Pydantic AI** zur Steuerung spezialisierter LLM-Sub-Agenten, **FastMCP** (Model Context Protocol) zur Bereitstellung systemnaher Werkzeuge und **MLflow** zur strukturierten Überwachung und Evaluierung der Extraktionsgüte.
 
 ---
+## Demo
+<video src="demo/demo_phase_prod.mp4" controls width="700">
+  Your browser does not support the video tag.
+</video>
+*Demonstration der produktiven Matching-Pipeline (Phase 2).*
+
+<video src="demo/demo_phase_exp.mp4" controls width="700">
+  Your browser does not support the video tag.
+</video>
+*Mlflow Anwendung mit Datensätze, Experimente, Evaluation .*
 
 ## Schnellstart über Docker Compose
 
